@@ -40,8 +40,20 @@ Template:
 - Decision: Use the released 483-feature RFE dataset in `6_experiments/FS_MLRan_Datasets/` (vendored into `data/raw/mlran/`).
 - Consequence: Acknowledge limitation in report; run leak-free protocol on 483 features; use RanSMAP for dynamic/early time-series analysis.
 
-## D-004 | pending | Early-detection metric definitions (fill in T-P4-01)
-- Status: PROPOSED
+## D-004 | 2026-10-14 | Early-detection metric definitions (T-P4-01)
+- Status: ACCEPTED
+- Decided by: Kishan / Cursor
+- Context: Phase 4 needs shared formulas before window models (T-P4-02+). RanSMAP has entropy/LBA time series; MLRan full traces are not public (20 JSON reports only). Track B prefix-at-scale is DROPPED (D-009).
+- Decision:
+  1. Unit of analysis is the **execution**; windows/prefixes never split independently of their execution.
+  2. **TTD** = first streaming-alert time; never-detected ransomware is **censored at that execution’s max time** (not imputed as a detected TTD in medians of detected-only summaries).
+  3. **Detect@t** for t ∈ {2,5,10,20,30,60,120}s is the fraction of ransomware executions with T_alert ≤ t.
+  4. **FA/hour** on goodware executions is the operational false-alarm metric; window FPR is secondary.
+  5. Bytes/LBA (or Cuckoo file ops) before alert quantify damage-before-detection; missing fields are reported as unavailable.
+  6. AESCrypt is benign. Entropy threshold for pre- vs during-encryption labels is fit on train ransomware/benign only.
+  7. Claims from 20 MLRan reports must be labelled prototype.
+- Alternatives: Mean TTD treating misses as T_max (rejected — optimistic if mixed with detected cases without stating censoring).
+- Consequences: Spec in `docs/early_detection_protocol.md`. T-P4-02 implements windowing against this spec.
 
 ## D-005 | pending | Two-stage design (early alert + confirmation) (fill in T-P4-07)
 - Status: PROPOSED

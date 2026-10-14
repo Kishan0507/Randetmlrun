@@ -1,0 +1,8 @@
+method: sigmoid
+fpr_budget: 0.01
+threshold: 0.63
+selected_on: chronological validation slice (calibrated probs)
+val_empirical_fpr: 0.009523809523809525
+val_empirical_recall: 0.9822485207100592
+base_model: LogisticRegression(C=1.0, solver=liblinear)
+seed: 42

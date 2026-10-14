@@ -95,3 +95,44 @@ Every metric you quote anywhere must trace to an entry here.
   - Operating Point (t=0.70): BalAcc=98.03%, Overall FPR=1.57% (8/510), FNR=2.37% (11/465)
   - Operating Point (t=0.90): BalAcc=95.85%, Overall FPR=0.98% (5/510, meets <1% budget), FNR=7.31% (34/465)
 - Artifacts: `reports/drift.md`, `scripts/drift_and_fp_analysis.py`
+
+## E-010 | 2026-10-14 | Wider model comparison & efficiency study | Task: T-P2-01, T-P2-05
+- Run by: Kishan / Antigravity
+- Git commit: pending   Config: configs/default.yaml   Seed: 42
+- Data: MLRan 483-feature dataset (Train: 3,905, Test: 975)
+- Method: Expanding-window temporal CV (3 folds) on train; full fit and test evaluation with bootstrap CIs for 8 models (LR L1/L2, Linear SVM, DT, RF, Extra Trees, LightGBM, XGBoost).
+- Results (Expanding CV BalAcc / Test BalAcc [95% CI] / Latency ms/samp / Size KB):
+  - LR (L2): CV=96.33% / Test=98.18% [97.25%, 98.98%] / Lat=0.014 ms / 9.2 KB
+  - Linear SVM: CV=96.20% / Test=97.10% [95.99%, 98.14%] / Lat=0.007 ms / 9.1 KB
+  - LightGBM: CV=94.82% / Test=97.48% [96.34%, 98.43%] / Lat=0.016 ms / 362.7 KB
+  - Extra Trees: CV=95.81% / Test=97.18% [96.08%, 98.16%] / Lat=0.033 ms / 2,589 KB
+  - Random Forest: CV=95.81% / Test=97.07% [95.92%, 98.05%] / Lat=0.033 ms / 2,008 KB
+  - XGBoost: CV=93.29% / Test=96.99% [95.89%, 98.00%] / Lat=0.110 ms / 193.3 KB
+  - Decision Tree: CV=91.29% / Test=94.18% [92.70%, 95.62%] / Lat=0.007 ms / 17.6 KB
+- Artifacts: `reports/model_comparison.md`, `scripts/model_comparison.py`, `models/*_test.joblib`
+
+## E-020 | 2026-10-14 | Family classification v2 | Task: T-P2-03
+- Run by: Kishan / Antigravity
+- Git commit: pending   Config: configs/default.yaml   Seed: 42
+- Data: MLRan 65-class family task (Goodware + 64 ransomware families)
+- Method: Compared flat LR baseline, class-weighted Balanced LR, Hierarchical (Binary -> Family), and Balanced LightGBM.
+- Results:
+  - Paper Flat LR Baseline: BalAcc = 47.07%, Macro-F1 = 35.96% (exact reproduction)
+  - Balanced Logistic Regression (v2): BalAcc = **51.53%** (+4.46%), Macro-F1 = 33.64%
+  - Hierarchical Balanced LR: BalAcc = 49.46% (+2.39%), Macro-F1 = 32.19%
+  - Balanced LightGBM: BalAcc = 47.63% (+0.56%), Macro-F1 = 32.41%
+- Artifacts: `reports/model_comparison.md`
+
+## E-025 | 2026-10-14 | Unknown family rejection & LOFO generalization | Task: T-P2-04
+- Run by: Kishan / Antigravity
+- Git commit: pending   Config: configs/default.yaml   Seed: 42
+- Data: MLRan top 5 ransomware families (pajetbin, cryptolocker, reveton, locker, virlock)
+- Method: Leave-One-Family-Out (LOFO) evaluation: train on all other data with target family completely omitted, evaluate zero-day detection rate as ransomware.
+- Results:
+  - pajetbin (134 samples): 100.00% caught
+  - cryptolocker (104 samples): 100.00% caught
+  - reveton (89 samples): 95.51% caught
+  - locker (87 samples): 94.25% caught
+  - virlock (81 samples): 100.00% caught
+  - Average Novel Family Detection: **97.95%**
+- Artifacts: `reports/model_comparison.md`
