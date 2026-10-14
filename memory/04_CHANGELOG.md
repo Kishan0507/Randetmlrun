@@ -12,6 +12,32 @@
 - Follow-ups: <what the next person should do>
 ```
 
+## C-004 | 2026-10-14 | T-P0-05
+- Contributor (human): Kishan (dkkishangowda@gmail.com)
+- Agent / IDE: Antigravity
+- What changed:
+  - Created automated verification script `scripts/verify_audit.py` to audit paper claims A1–A14 against the raw MLRan dataset and paper text.
+  - Audited and CONFIRMED all 14 items in `memory/03_PAPER_AUDIT.md`:
+    - A1: Test set snooping in RFE (Alg 2 line 17 uses test set balanced accuracy).
+    - A2: Caption errors (XGBoost named in caption of Table 5/6).
+    - A3: Mathematical inconsistency in Table 5 (F1=98.41 reported with P=R=93.85).
+    - A4: Abstract cherry-picking class-specific metrics to claim up to 98.9%/98.7%.
+    - A5-A6: Table 1 swapped ShieldFS columns and Table 7 vs text STR discrepancy.
+    - A7: Date ranges: Goodware (2006-2024), Ransomware (2008-2024).
+    - A8: 65 classes = 1 goodware (class 0) + 64 ransomware families (classes 1-64).
+    - A9: 2% of 24,162 features = 483 features; notation error |X_train| instead of |F|.
+    - A10: Solver discrepancy: saga in Alg 2 vs liblinear/lbfgs in Table 9.
+    - A11: Sample and family count mismatches in Fig 6 vs text.
+    - A12: 81.0% (413/510) of test goodware are 2023-2024, creating a massive base-rate confounder for the 11/12 false positives.
+    - A13: Top SHAP feature `STRING:!this program cannot be run in dos mode.` reflects benign installer wrappers (43% train, 27% test) vs raw ransomware binaries (91% train, 82% test).
+    - A14: Complete source bifurcation: 100% of goodware from Software Informer, 100% of ransomware from malware repos.
+- Why: Paper verification before citing numbers or building models (T-P0-05).
+- Verification: `python scripts/verify_audit.py` runs with exit code 0 and verifies all items.
+- Plan impact: T-P0-05 marked DONE. Phase 0 is now 100% complete!
+- Follow-ups: Proceed to Phase 1 (T-P1-01 baseline reproduction & leak-free protocol).
+
+---
+
 ## C-003 | 2026-10-14 | T-P0-06
 - Contributor (human): Kishan (dkkishangowda@gmail.com)
 - Agent / IDE: Antigravity
