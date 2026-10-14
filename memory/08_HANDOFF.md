@@ -4,23 +4,24 @@ Last updated: 2026-10-14 by Kishan / Antigravity
 
 ## Done
 - T-P0-01..06: Full Phase 0 complete (environment, data loader, vendored MLRan with SHA256 hashes, RanSMAP layout inspection, and verification of paper audit items A1–A14).
-- T-P1-01: Baseline Logistic Regression reproduced exactly (TN=498, FP=12, FN=6, TP=459, Balanced Accuracy 98.18%, Accuracy 98.15%).
-- T-P1-02: Multi-model baseline reproduction (DT, RF, Extra Trees, LightGBM) with 95% bootstrap CIs.
-- T-P1-03: Leak-free temporal evaluation protocol (`src/eval/protocol.py`) with guarded test access and expanding-window CV.
-- T-P1-05: Comprehensive evaluation metrics module (`src/eval/metrics.py`) with bootstrap CIs.
-- Experiments E-001, E-002, E-003 logged in `memory/09_EXPERIMENT_LOG.md` and detailed report in `reports/baseline_repro.md`. Phase 1 complete!
+- T-P1-01..05: Full Phase 1 complete (exact baseline LR reproduction TN=498, FP=12, FN=6, TP=459, leak-free temporal protocol with guarded test access, bootstrap CIs).
+- T-P3-01..04: Full Phase 3 complete:
+  - T-P3-01: Concept drift analysis by year (2021–2024), AUT = 98.54%, FPR grows monotonically 0% -> 3.03% (`reports/drift.md`).
+  - T-P3-02: 12 false positives identified and attributed to installer packaging artifacts (`STRING:!this program cannot be run in dos mode.` w=+2.599 in 100% of FPs; dynamic memory allocation, and compression entropy) (`reports/fp_analysis.md`).
+  - T-P3-03: Drift mitigation evaluated; cost-weighting goodware (CW=1.5) improves BalAcc to 98.28% and cuts FPR; calibrated thresholding cuts recent FPs by >60%.
+  - T-P3-04: Goodware expansion protocol written in `docs/goodware_protocol.md`.
 
 ## In progress
-- Phase 3: Drift by year and false positive analysis (T-P3-01, T-P3-02, T-P3-03).
+- Phase 2: Better models and family classification (T-P2-01, T-P2-02, T-P2-03, T-P2-04, T-P2-05).
 
 ## Next step (do this first)
-1. T-P3-01: Compute performance and AUT (area under time) per year for baseline LR & LightGBM; plot/tabulate FPR/FNR by first-submission year.
-2. T-P3-02: Error analysis of the 12 false positives (which features fire via SHAP/coefficients, which goodware apps, common causes).
-3. T-P3-03: Drift mitigation experiments (sliding window, recency weighting, cost-sensitive loss, recalibration).
+1. T-P2-01: Wider model comparison on same features (LR L1/L2, Linear SVM, RF, Extra Trees, LightGBM, XGBoost) with chronological expanding-window CV.
+2. T-P2-02: Probability calibration and operating point selection under FPR budget (FPR <= 1%).
+3. T-P2-03: Family classification v2 (hierarchical / class-weighted, beating paper's 47.07% balanced accuracy).
 
 ## Open questions for the user / team
 - None. Track A only, CPU-only workflow progressing rapidly.
 
 ## Gotchas
 - The 12 baseline false positives in the test set occur primarily in 2023–2024 because 81% of test goodware is from 2023–2024.
-- Single Decision Trees degrade severely over chronological shifts (-6.4% on validation slice), while Extra Trees and LR remain robust.
+- `STRING:!this program cannot be run in dos mode.` is the #1 cause of false alarms on modern installers; dropping it or weighting goodware heavily mitigates this.

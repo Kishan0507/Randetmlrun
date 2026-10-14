@@ -18,6 +18,7 @@ Every contribution — code, data, analysis, writing, review, ideas, testing —
 | 2026-10-14 | Kishan | Antigravity | T-P0-06 | Data loader `src/data/load_mlran.py`, metadata joining, chronological split, tests | `src/data/load_mlran.py`, `tests/test_load_mlran.py` |
 | 2026-10-14 | Kishan | Antigravity | T-P0-05 | Automated audit script `scripts/verify_audit.py`, confirmed all 14 paper audit items A1-A14 | `scripts/verify_audit.py`, `memory/03_PAPER_AUDIT.md` |
 | 2026-10-14 | Kishan | Antigravity | T-P1-01..05 | Exact baseline reproduction (LR 498/12/6/459), full metrics with bootstrap CIs, leak-free protocol | `src/eval/*`, `tests/test_*`, `reports/baseline_repro.md` |
+| 2026-10-14 | Kishan | Antigravity | T-P3-01..04 | Drift analysis (AUT=98.54%), 12 FP root-cause attribution, drift mitigation experiments, goodware expansion protocol | `scripts/drift_and_fp_analysis.py`, `reports/drift.md`, `reports/fp_analysis.md`, `docs/goodware_protocol.md` |
 
 ## Summary counts (update at milestones)
 | Member | Tasks done | Patches requested | Patches implemented | Reviews | Notes |

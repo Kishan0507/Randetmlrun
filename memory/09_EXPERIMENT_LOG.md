@@ -57,4 +57,41 @@ Every metric you quote anywhere must trace to an entry here.
   - LightGBM: 96.75% [95.03%, 98.05%], macro-F1=91.85%
   - Decision Tree: 87.79% [84.93%, 90.34%], macro-F1=75.22%
 - Artifacts: `src/eval/protocol.py`, `tests/test_protocol.py`, `reports/baseline_repro.md`
-- Notes: Single decision tree collapses under chronological shift (-6.4% drop). Ensembles and regularized linear models maintain >98% balanced accuracy._
+- Notes: Single decision tree collapses under chronological shift (-6.4% drop). Ensembles and regularized linear models maintain >98% balanced accuracy.
+
+## E-030 | 2026-10-14 | Concept drift by year & Area Under Time (AUT) | Task: T-P3-01
+- Run by: Kishan / Antigravity
+- Git commit: pending   Config: configs/default.yaml   Seed: 42
+- Data: MLRan test set (975 samples: 510 goodware, 465 ransomware) split by first_submission_date_year (2021-2024)
+- Method: Baseline LR evaluated per year. Trapezoidal integration for AUT over 2021-2024.
+- Results:
+  - 2021: FPR = 0.00% (0/26), FNR = 1.83% (4/218), BalAcc = 99.08%
+  - 2022: FPR = 1.41% (1/71), FNR = 0.00% (0/57), BalAcc = 99.30%
+  - 2023: FPR = 2.20% (4/182), FNR = 0.63% (1/158), BalAcc = 98.58%
+  - 2024: FPR = 3.03% (7/231), FNR = 3.12% (1/32), BalAcc = 96.92%
+  - AUT (Balanced Accuracy): 0.9854 (98.54%)
+- Artifacts: `reports/drift.md`, `scripts/drift_and_fp_analysis.py`
+- Notes: Monotonic growth of FPR over time confirms temporal concept drift. Confirmed base-rate confounder (A12): 81% of test goodware is from 2023-2024.
+
+## E-031 | 2026-10-14 | Error analysis and attribution of the 12 false positives | Task: T-P3-02
+- Run by: Kishan / Antigravity
+- Git commit: pending   Config: configs/default.yaml   Seed: 42
+- Data: The 12 misclassified goodware samples from test set matched against `goodware_samples_description.csv`
+- Method: Model feature weight decomposition, prevalence check in train vs test, application title/category inspection
+- Results:
+  - Applications: PDFCreator (13020), Zoom (13030), Intel BT (13046), McAfee (13056), TeamSpeak (13069), Avast (13093), Garmin Express (13118), VALORANT (13187), CyberGhost (13292), Razer Cortex (13333), MiKTeX (15187), Scapple (15373).
+  - Primary driver: `STRING:!this program cannot be run in dos mode.` (w=+2.599) fired in 12/12 (100%) FPs due to installer packaging format shift.
+  - Secondary drivers: `API:LdrGetProcedureAddress` (w=+1.71, 11/12), `API:NtAllocateVirtualMemory` (w=+1.34, 8/12), `SIGNATURE:packer_entropy` (w=+1.28, 5/12).
+- Artifacts: `reports/fp_analysis.md`
+
+## E-032 | 2026-10-14 | Drift mitigation evaluation | Task: T-P3-03
+- Run by: Kishan / Antigravity
+- Git commit: pending   Config: configs/default.yaml   Seed: 42
+- Data: MLRan 483-feature test set; focus on 2023-2024 goodware (413 samples)
+- Method: Compared Cost-Sensitive Loss (CW Goodware=1.5 and 2.0), Recency Weighting (lambda=0.05), Sliding Window (>= 2012), Operating Threshold Tuning (0.70, 0.90)
+- Results:
+  - Baseline (LR): BalAcc=98.18%, Overall FPR=2.35% (12/510), 2023-24 FPR=2.66% (11/413)
+  - Cost-Weight (CW=1.5): BalAcc=98.28%, Overall FPR=2.16% (11/510), 2023-24 FPR=2.42% (10/413), FNR=1.29% (6/465)
+  - Operating Point (t=0.70): BalAcc=98.03%, Overall FPR=1.57% (8/510), FNR=2.37% (11/465)
+  - Operating Point (t=0.90): BalAcc=95.85%, Overall FPR=0.98% (5/510, meets <1% budget), FNR=7.31% (34/465)
+- Artifacts: `reports/drift.md`, `scripts/drift_and_fp_analysis.py`

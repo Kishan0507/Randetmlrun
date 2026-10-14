@@ -12,6 +12,27 @@
 - Follow-ups: <what the next person should do>
 ```
 
+## C-006 | 2026-10-14 | T-P3-01, T-P3-02, T-P3-03, T-P3-04
+- Contributor (human): Kishan (dkkishangowda@gmail.com)
+- Agent / IDE: Antigravity
+- What changed:
+  - Created and ran `scripts/drift_and_fp_analysis.py` to evaluate temporal concept drift, false positive attribution, and drift mitigation.
+  - T-P3-01: Analyzed test set performance by year (2021–2024); calculated Area Under Time (AUT = 98.54%); confirmed monotonic FPR growth from 0.0% (2021) to 3.03% (2024). Generated `reports/drift.md`.
+  - T-P3-02: Conducted error analysis of the 12 false positives; matched application titles (Zoom, PDFCreator, Intel BT, VALORANT, CyberGhost, Avast); identified 3 root causes:
+    1. Static compilation stub artifact (`STRING:!this program cannot be run in dos mode.`, w=+2.599, present in 12/12 FPs).
+    2. Dynamic library resolution and memory allocation (`LdrGetProcedureAddress` in 11/12, `NtAllocateVirtualMemory` in 8/12).
+    3. Compression triggering high section entropy (`SIGNATURE:packer_entropy` in 5/12).
+    Generated `reports/fp_analysis.md`.
+  - T-P3-03: Evaluated 5 drift mitigation strategies (Cost-sensitive loss, recency weighting, sliding window, calibrated thresholding); showed that cost-weighting goodware (CW=1.5) improves balanced accuracy to 98.28% and cuts FPR, while threshold tuning cuts recent FPs by >60%.
+  - T-P3-04: Created goodware expansion protocol `docs/goodware_protocol.md` defining multi-source ingestion (winget, choco, enterprise, portable) and VT 0-detection criteria to eliminate source bias.
+  - Logged E-030, E-031, E-032 in `memory/09_EXPERIMENT_LOG.md`.
+- Why: Concept drift analysis and false positive mitigation (Phase 3).
+- Verification: Scripts executed cleanly; detailed Markdown reports generated; master plan updated.
+- Plan impact: T-P3-01, T-P3-02, T-P3-03, T-P3-04 marked DONE. Phase 3 complete!
+- Follow-ups: Proceed to Phase 2 (T-P2-01..03 model comparison & family classification).
+
+---
+
 ## C-005 | 2026-10-14 | T-P1-01, T-P1-02, T-P1-03, T-P1-05
 - Contributor (human): Kishan (dkkishangowda@gmail.com)
 - Agent / IDE: Antigravity
