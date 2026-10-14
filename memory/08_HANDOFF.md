@@ -7,20 +7,20 @@ Last updated: 2026-10-14 by Kishan / Antigravity
 - T-P0-02: RanSMAP upstream layout inspected, ~32 GB size noted, structure and loader decision recorded in D-002.
 - T-P0-03: MLRan upstream checked, full 6.4M dataset confirmed not public, recorded in D-003.
 - T-P0-04: MLRan 483-feature RFE subset and metadata vendored to data/raw/mlran/, SHA256 hashes verified in data/README.md.
-- Git repo initialized with Kishan (dkkishangowda@gmail.com) as contributor.
+- T-P0-06: Data loader module `src/data/load_mlran.py` implemented and verified with unit tests `tests/test_load_mlran.py` (3,905 train / 975 test rows, 483 features, exact class counts matching paper).
 
 ## In progress
-- T-P0-06: MLRan data loader (`src/data/load_mlran.py`) + tests.
+- T-P0-05: Verify paper audit items A1–A14 against data, record status and evidence in `memory/03_PAPER_AUDIT.md`.
 
 ## Next step (do this first)
-1. T-P0-06: Build `src/data/load_mlran.py` to load X_train, X_test, labels, metadata, map feature indices to names, join first_submission_date, write pytest in `tests/test_load_mlran.py`.
-2. T-P0-05: Verify paper audit items A1–A14 against data, record status and evidence in `memory/03_PAPER_AUDIT.md`.
-3. T-P1-01..05: Baseline reproduction and leak-free protocol.
+1. T-P0-05: Run systematic verification script for paper audit items A1–A14, update `memory/03_PAPER_AUDIT.md`.
+2. T-P1-01..05: Baseline reproduction (LR, Decision Tree, RF, Extra Trees, LightGBM) and leak-free protocol implementation.
+3. T-P3-01..03: Drift by year and FP analysis.
 
 ## Open questions for the user / team
-- None currently blocking. Scope narrowed to Track A only, CPU-only laptop via D-009.
+- None. Track A only, CPU-only workflow.
 
 ## Gotchas
-- The full MLRan 6.4M-feature data is not public; only the 483-feature CSVs are. Feature columns are numeric indices — map via `RFE_selected_feature_names_dic.json`.
-- The paper chooses RFE feature count via test-set balanced accuracy (A1 audit item); our leak-free protocol must use a chronological validation slice carved from train.
-- RanSMAP repo is 32 GB; do not full-clone, fetch needed runs on-demand via HTTP.
+- The 483 features in MLRan are all binary indicators {0, 1}.
+- Feature columns are mapped via `load_feature_names()` or `load_mlran_dataset(rename_features=True)`.
+- Temporal split is already encoded in the sample_id train/test split (train <= 2023-03-21, test >= 2021-10-29).

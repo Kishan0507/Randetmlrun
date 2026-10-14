@@ -12,6 +12,19 @@
 - Follow-ups: <what the next person should do>
 ```
 
+## C-003 | 2026-10-14 | T-P0-06
+- Contributor (human): Kishan (dkkishangowda@gmail.com)
+- Agent / IDE: Antigravity
+- What changed:
+  - Implemented `src/data/load_mlran.py` with `load_feature_names`, `load_mlran_dataset` (returning `MLRanDataset`), and `get_chronological_val_split`.
+  - Added unit test suite `tests/test_load_mlran.py` verifying shapes (3,905 train, 975 test, 483 binary features), exact paper class counts (train: 2040/1865, test: 510/465, 65 families, 5 types), feature renaming, and chronological validation split properties.
+- Why: Standardized data loader and leak-free split foundation (T-P0-06).
+- Verification: `pytest tests/test_load_mlran.py` passed (4/4 tests passed in 3.01s; 5/5 overall passed).
+- Plan impact: T-P0-06 marked DONE.
+- Follow-ups: T-P0-05 (paper audit verification against data).
+
+---
+
 ## C-002 | 2026-10-14 | T-P0-01, T-P0-02, T-P0-03, T-P0-04
 - Contributor (human): Kishan (dkkishangowda@gmail.com)
 - Agent / IDE: Antigravity

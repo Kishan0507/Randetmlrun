@@ -15,6 +15,7 @@ Every contribution — code, data, analysis, writing, review, ideas, testing —
 |---|---|---|---|---|---|
 | 2026-10-13 | Kishan | Claude chat | scaffold | Project idea, limitations analysis, scaffold request | memory/* |
 | 2026-10-14 | Kishan | Antigravity | T-P0-01..04 | Env setup, pinned reqs, git init, MLRan vendoring + hashes, RanSMAP layout inspection | memory/*, requirements.txt, data/* |
+| 2026-10-14 | Kishan | Antigravity | T-P0-06 | Data loader `src/data/load_mlran.py`, metadata joining, chronological split, tests | `src/data/load_mlran.py`, `tests/test_load_mlran.py` |
 
 ## Summary counts (update at milestones)
 | Member | Tasks done | Patches requested | Patches implemented | Reviews | Notes |

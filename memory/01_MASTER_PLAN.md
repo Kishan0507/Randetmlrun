@@ -15,7 +15,7 @@ Order of work (updated D-009): P0 → P1 → P3 → P2 → P4 → P8 → P9. T-P
 | T-P0-03 | Re-check upstream MLRan repo: is the full 6.4M-feature dataset released now? Record result | A | — | decision D-003 | Yes/No + link/date noted; if yes, plan T-P1-01 to use full data | DONE | Kishan |
 | T-P0-04 | Vendor MLRan released files into `data/raw/mlran/` (do not edit), write `data/README.md` with SHA256 of each file and source URL/commit | A | T-P0-01 | `data/raw/mlran/*` | Files present, hashes recorded, licence note (MIT, attribute authors) | DONE | Kishan |
 | T-P0-05 | Verify the audit items in `03_PAPER_AUDIT.md` that can be checked from data (A1–A8) and mark each `CONFIRMED` / `NOT CONFIRMED` / `UNCLEAR` | A | T-P0-04 | updated audit file | Every checkable item has a status + evidence (code/notebook path) | TODO | |
-| T-P0-06 | Data loader module `src/data/load_mlran.py`: load X/y, join metadata, map feature index → name, parse first-submission date, return train/test using the paper's sample-id files | A | T-P0-04 | module + tests | 3,905 train / 975 test rows; class counts match paper; unit tests green | TODO | |
+| T-P0-06 | Data loader module `src/data/load_mlran.py`: load X/y, join metadata, map feature index → name, parse first-submission date, return train/test using the paper's sample-id files | A | T-P0-04 | module + tests | 3,905 train / 975 test rows; class counts match paper; unit tests green | DONE | Kishan |
 
 ## Phase 1 — Reproduce baseline and make evaluation leak-free
 | ID | Task | Track | Depends on | Output | Acceptance criteria | Status | Owner |
