@@ -1,0 +1,19 @@
+seed: 42
+paths:
+  raw_mlran: data/raw/mlran
+  processed: data/processed
+  reports: reports
+split:
+  protocol: temporal            # see memory/05_DECISIONS.md D-007
+  train_fraction: 0.80
+  time_column: first_submission_date_converted
+  validation_fraction_of_train: 0.20   # chronological slice at the END of train
+metrics:
+  primary: balanced_accuracy
+  bootstrap_resamples: 1000
+  fpr_budget: 0.01
+early_detection:
+  checkpoints_seconds: [2, 5, 10, 20, 30, 60, 120]
+  smoothing: ewma
+  ewma_alpha: 0.3
+  k_of_n: [2, 3]

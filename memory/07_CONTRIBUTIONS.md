@@ -1,0 +1,29 @@
+# 07 — Contributions ledger (acknowledgement)
+
+Every contribution — code, data, analysis, writing, review, ideas, testing — is recorded here with the person's name. Append only. The final report's acknowledgement section is generated from this file.
+
+## Team roster (fill at kickoff)
+| Member | Email / handle | Main IDE | Focus area | Joined |
+|---|---|---|---|---|
+| Kishan (project lead) | dkkishangowda@gmail.com | Antigravity / Cursor | All | 2026-10-13 |
+| Member 2 | | | | |
+| Member 3 | | | | |
+| Member 4 | | | | |
+
+## Ledger (newest at the bottom)
+| Date | Member | Agent/IDE | Task / Patch IDs | Contribution (one line) | Files / links |
+|---|---|---|---|---|---|
+| 2026-10-13 | Kishan | Claude chat | scaffold | Project idea, limitations analysis, scaffold request | memory/* |
+| 2026-10-14 | Kishan | Antigravity | T-P0-01..04 | Env setup, pinned reqs, git init, MLRan vendoring + hashes, RanSMAP layout inspection | memory/*, requirements.txt, data/* |
+
+## Summary counts (update at milestones)
+| Member | Tasks done | Patches requested | Patches implemented | Reviews | Notes |
+|---|---|---|---|---|---|
+| | | | | | |
+
+## Credit rules
+1. A contribution is credited to the **human** who directed or wrote it; the AI agent/IDE is noted but is not a substitute for the name.
+2. Ideas count: a good idea or bug report gets a line even if someone else typed the code.
+3. Reviews count: a person who reviews and catches an error gets a line.
+4. Commit trailer `Contributed-by: <Name>` must match the ledger name.
+5. Upstream credit: MLRan (Onwuegbuche et al.), RanSMAP (Hirano & Kobayashi) are cited in the report and README.

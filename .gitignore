@@ -1,0 +1,16 @@
+.venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.DS_Store
+# data: raw is tracked by hash in data/README.md, large files go to LFS or a shared drive
+data/raw/**/*.exe
+data/raw/**/*.dll
+data/raw/**/*.zip
+data/processed/*.parquet
+# never commit malware or raw sandbox reports containing paths/IPs
+*.bin
+*.sample
+raw_reports/
+models/*.pkl
+.env
