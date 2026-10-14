@@ -20,11 +20,11 @@ Order of work (updated D-009): P0 → P1 → P3 → P2 → P4 → P8 → P9. T-P
 ## Phase 1 — Reproduce baseline and make evaluation leak-free
 | ID | Task | Track | Depends on | Output | Acceptance criteria | Status | Owner |
 |---|---|---|---|---|---|---|---|
-| T-P1-01 | Reproduce paper result: LR (liblinear, C grid), on released 483-feature split. Reproduce confusion matrix 498/12/6/459 | A | T-P0-06 | `reports/baseline_repro.md`, E-001 | balanced acc within ±0.5 pt of 98.15/98.18; if not, document why | TODO | |
-| T-P1-02 | Reproduce the other models (Decision Tree, RF, Extra Trees, LightGBM) with the paper's grid (Table 9) | A | T-P1-01 | E-002 | Numbers vs Table 6 in a side-by-side table | TODO | |
-| T-P1-03 | Leak-free protocol: carve a chronological **validation** slice from the last 20% of the training period; choose model/threshold/hyper-params there; test set touched once | A | T-P1-01 | `src/eval/protocol.py`, E-003 | Code path makes test-set access impossible before "final" call (assert/guard); documented in decisions | TODO | |
-| T-P1-04 | Re-run RFE feature-count choice **inside training only** (the paper picks 2% using test balanced accuracy — see audit A1). Needs the 24,162 MI-filtered features; if unavailable, document and mark limitation | A | T-P0-03 | E-004 | If data unavailable: marked `BLOCKED` with reason; else honest number reported | TODO | |
-| T-P1-05 | Add full metric suite: bal. acc, macro-F1, precision, recall, FPR, FNR, PR-AUC, confusion matrix, 95% bootstrap CI | A | T-P1-03 | `src/eval/metrics.py` | Unit tests on toy data; CI via 1,000 bootstrap resamples | TODO | |
+| T-P1-01 | Reproduce paper result: LR (liblinear, C grid), on released 483-feature split. Reproduce confusion matrix 498/12/6/459 | A | T-P0-06 | `reports/baseline_repro.md`, E-001 | balanced acc within ±0.5 pt of 98.15/98.18; if not, document why | DONE | Kishan |
+| T-P1-02 | Reproduce the other models (Decision Tree, RF, Extra Trees, LightGBM) with the paper's grid (Table 9) | A | T-P1-01 | E-002 | Numbers vs Table 6 in a side-by-side table | DONE | Kishan |
+| T-P1-03 | Leak-free protocol: carve a chronological **validation** slice from the last 20% of the training period; choose model/threshold/hyper-params there; test set touched once | A | T-P1-01 | `src/eval/protocol.py`, E-003 | Code path makes test-set access impossible before "final" call (assert/guard); documented in decisions | DONE | Kishan |
+| T-P1-04 | Re-run RFE feature-count choice **inside training only** (the paper picks 2% using test balanced accuracy — see audit A1). Needs the 24,162 MI-filtered features; if unavailable, document and mark limitation | A | T-P0-03 | E-004 | If data unavailable: marked `BLOCKED` with reason; else honest number reported | BLOCKED | Kishan |
+| T-P1-05 | Add full metric suite: bal. acc, macro-F1, precision, recall, FPR, FNR, PR-AUC, confusion matrix, 95% bootstrap CI | A | T-P1-03 | `src/eval/metrics.py` | Unit tests on toy data; CI via 1,000 bootstrap resamples | DONE | Kishan |
 
 ## Phase 2 — Better models (binary, type, family)
 | ID | Task | Track | Depends on | Output | Acceptance criteria | Status | Owner |

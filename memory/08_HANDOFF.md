@@ -3,26 +3,24 @@
 Last updated: 2026-10-14 by Kishan / Antigravity
 
 ## Done
-- T-P0-01: Environment verified (pip freeze, torch removed, pytest passing), requirements.txt pinned.
-- T-P0-02: RanSMAP upstream layout inspected, ~32 GB size noted, structure and loader decision recorded in D-002.
-- T-P0-03: MLRan upstream checked, full 6.4M dataset confirmed not public, recorded in D-003.
-- T-P0-04: MLRan 483-feature RFE subset and metadata vendored to data/raw/mlran/, SHA256 hashes verified in data/README.md.
-- T-P0-06: Data loader module `src/data/load_mlran.py` implemented and verified with unit tests `tests/test_load_mlran.py` (3,905 train / 975 test rows, 483 features, exact class counts matching paper).
-- T-P0-05: Verified and confirmed paper audit items A1–A14 via automated script `scripts/verify_audit.py`, updated `memory/03_PAPER_AUDIT.md`. Phase 0 complete!
+- T-P0-01..06: Full Phase 0 complete (environment, data loader, vendored MLRan with SHA256 hashes, RanSMAP layout inspection, and verification of paper audit items A1–A14).
+- T-P1-01: Baseline Logistic Regression reproduced exactly (TN=498, FP=12, FN=6, TP=459, Balanced Accuracy 98.18%, Accuracy 98.15%).
+- T-P1-02: Multi-model baseline reproduction (DT, RF, Extra Trees, LightGBM) with 95% bootstrap CIs.
+- T-P1-03: Leak-free temporal evaluation protocol (`src/eval/protocol.py`) with guarded test access and expanding-window CV.
+- T-P1-05: Comprehensive evaluation metrics module (`src/eval/metrics.py`) with bootstrap CIs.
+- Experiments E-001, E-002, E-003 logged in `memory/09_EXPERIMENT_LOG.md` and detailed report in `reports/baseline_repro.md`. Phase 1 complete!
 
 ## In progress
-- T-P1-01..05: Baseline reproduction (LR, Decision Tree, RF, Extra Trees, LightGBM) and leak-free protocol implementation.
+- Phase 3: Drift by year and false positive analysis (T-P3-01, T-P3-02, T-P3-03).
 
 ## Next step (do this first)
-1. T-P1-01: Reproduce paper baseline result (LR on released 483-feature split, target confusion matrix 498/12/6/459, bal acc 98.18%).
-2. T-P1-02: Reproduce Table 6 models (DT, RF, Extra Trees, LightGBM).
-3. T-P1-03: Build `src/eval/protocol.py` (chronological validation slice, guard against test snooping).
-4. T-P1-05: Build `src/eval/metrics.py` (bal acc, macro-F1, precision, recall, FPR, FNR, PR-AUC, 1000 bootstrap resamples CI).
+1. T-P3-01: Compute performance and AUT (area under time) per year for baseline LR & LightGBM; plot/tabulate FPR/FNR by first-submission year.
+2. T-P3-02: Error analysis of the 12 false positives (which features fire via SHAP/coefficients, which goodware apps, common causes).
+3. T-P3-03: Drift mitigation experiments (sliding window, recency weighting, cost-sensitive loss, recalibration).
 
 ## Open questions for the user / team
-- None. Track A only, CPU-only workflow.
+- None. Track A only, CPU-only workflow progressing rapidly.
 
 ## Gotchas
-- The paper chooses RFE feature count via test-set balanced accuracy (A1 audit item); our leak-free protocol must use a chronological validation slice carved from train.
-- 81% of test goodware is from 2023–2024, causing the false positive clustering observed in the paper (A12).
-- Top SHAP feature `STRING:!this program cannot be run in dos mode.` reflects installer wrapper vs raw malware format (A13/A14).
+- The 12 baseline false positives in the test set occur primarily in 2023–2024 because 81% of test goodware is from 2023–2024.
+- Single Decision Trees degrade severely over chronological shifts (-6.4% on validation slice), while Extra Trees and LR remain robust.

@@ -12,6 +12,25 @@
 - Follow-ups: <what the next person should do>
 ```
 
+## C-005 | 2026-10-14 | T-P1-01, T-P1-02, T-P1-03, T-P1-05
+- Contributor (human): Kishan (dkkishangowda@gmail.com)
+- Agent / IDE: Antigravity
+- What changed:
+  - Built evaluation metrics module `src/eval/metrics.py` (bal acc, macro-F1, precision, recall, FPR, FNR, PR-AUC, confusion matrix, 95% bootstrap CI via 1,000 resamples).
+  - Built leak-free temporal evaluation protocol `src/eval/protocol.py` with `TestSnoopingGuardError`, chronological validation slice (last 20% of train period), and expanding-window CV.
+  - Implemented and ran `scripts/reproduce_baseline.py`:
+    - Exactly reproduced paper Table 6 and Fig 12 confusion matrix for Logistic Regression: TN=498, FP=12, FN=6, TP=459, Balanced Accuracy 98.18% [97.25%, 98.98%], Accuracy 98.15%.
+    - Evaluated DT, RF, Extra Trees, LightGBM with 95% bootstrap CIs.
+    - Evaluated models on leak-free chronological validation slice (E-003): Extra Trees achieved 98.64% [97.45%, 99.49%] BalAcc; Decision Tree suffered severe temporal degradation (87.79% BalAcc, 120 FNs).
+  - Generated full baseline reproduction report in `reports/baseline_repro.md`.
+  - Logged experiments E-001, E-002, E-003 in `memory/09_EXPERIMENT_LOG.md`.
+- Why: Baseline reproduction and leak-free evaluation protocol (Phase 1).
+- Verification: 11 unit tests green; exact confusion matrix match (498/12/6/459); full bootstrap CIs computed.
+- Plan impact: T-P1-01, T-P1-02, T-P1-03, T-P1-05 marked DONE; T-P1-04 marked BLOCKED by upstream MI-feature non-release. Phase 1 complete!
+- Follow-ups: Proceed to Phase 3 (T-P3-01..03 concept drift & false positive analysis).
+
+---
+
 ## C-004 | 2026-10-14 | T-P0-05
 - Contributor (human): Kishan (dkkishangowda@gmail.com)
 - Agent / IDE: Antigravity
