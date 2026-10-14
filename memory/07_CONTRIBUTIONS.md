@@ -6,7 +6,7 @@ Every contribution — code, data, analysis, writing, review, ideas, testing —
 | Member | Email / handle | Main IDE | Focus area | Joined |
 |---|---|---|---|---|
 | Kishan (project lead) | dkkishangowda@gmail.com | Antigravity / Cursor | All | 2026-10-13 |
-| Member 2 | | | | |
+| Karthikey | Member 2 | Antigravity | Environment, Phase 2, Early detection | 2026-10-14 |
 | Member 3 | | | | |
 | Member 4 | | | | |
 
@@ -19,6 +19,7 @@ Every contribution — code, data, analysis, writing, review, ideas, testing —
 | 2026-10-14 | Kishan | Antigravity | T-P0-05 | Automated audit script `scripts/verify_audit.py`, confirmed all 14 paper audit items A1-A14 | `scripts/verify_audit.py`, `memory/03_PAPER_AUDIT.md` |
 | 2026-10-14 | Kishan | Antigravity | T-P1-01..05 | Exact baseline reproduction (LR 498/12/6/459), full metrics with bootstrap CIs, leak-free protocol | `src/eval/*`, `tests/test_*`, `reports/baseline_repro.md` |
 | 2026-10-14 | Kishan | Antigravity | T-P3-01..04 | Drift analysis (AUT=98.54%), 12 FP root-cause attribution, drift mitigation experiments, goodware expansion protocol | `scripts/drift_and_fp_analysis.py`, `reports/drift.md`, `reports/fp_analysis.md`, `docs/goodware_protocol.md` |
+| 2026-10-15 | Karthikey / Kishan | Antigravity | T-P2-01..05, T-P4-01 | Phase 2 multi-model benchmark, calibration under FPR budget, family v2, pytest configuration & test verification | `src/models/*`, `tests/test_*`, `reports/model_comparison.md`, `configs/*`, `pytest.ini` |
 
 ## Summary counts (update at milestones)
 | Member | Tasks done | Patches requested | Patches implemented | Reviews | Notes |

@@ -12,6 +12,24 @@
 - Follow-ups: <what the next person should do>
 ```
 
+## C-007 | 2026-10-15 | T-P2-01, T-P2-02, T-P2-03, T-P2-04, T-P2-05, T-P4-01
+- Contributor (human): Karthikey / Kishan
+- Agent / IDE: Antigravity
+- What changed:
+  - T-P2-01: Multi-model comparison on 483 sparse features across 8 architectures (LR L1/L2, LinearSVC, DT, RF, Extra Trees, LightGBM, XGBoost, MLP) using expanding temporal CV. Best regularized model is L2 Logistic Regression (CV 96.33%, Test BalAcc 98.18% [97.25%, 98.98%]).
+  - T-P2-02: Calibrated probabilities with Platt scaling on chronological validation slice; implemented operating threshold tuning under 1% FPR budget (`src/models/calibrate.py`, `configs/operating_point.yaml`, `reports/reliability_curve.png`).
+  - T-P2-03: Solved extreme class imbalance in family classification using class-weighted Balanced Logistic Regression, beating the paper's 47.07% balanced accuracy by +4.46% (reaching 51.53% BalAcc, `reports/family_recall.csv`).
+  - T-P2-04: Implemented unknown family rejection via One-Vs-Rest confidence scoring; evaluated novel zero-day generalization via Leave-One-Family-Out (LOFO) across top 5 families, detecting 97.95% of novel ransomware samples.
+  - T-P2-05: Benchmarked model latency and memory footprints (LR delivers 0.014 ms/sample and 9.2 KB footprint).
+  - Configured `pytest.ini` with `pythonpath = .` and verified all 17 unit tests pass cleanly in `.venv`.
+  - T-P4-01: Confirmed early-detection protocol specification in `docs/early_detection_protocol.md`.
+- Why: Complete Phase 2 deliverables and establish leak-free foundation for early-detection time-series (Phase 4).
+- Verification: 17/17 pytest tests pass green; all generated models, YAML configs, and Markdown reports verified.
+- Plan impact: T-P2-01 through T-P2-05 and T-P4-01 marked DONE. Phase 2 complete!
+- Follow-ups: Proceed with Phase 4 time-series execution loader (T-P4-02 on RanSMAP).
+
+---
+
 ## C-006 | 2026-10-14 | T-P3-01, T-P3-02, T-P3-03, T-P3-04
 - Contributor (human): Kishan (dkkishangowda@gmail.com)
 - Agent / IDE: Antigravity
