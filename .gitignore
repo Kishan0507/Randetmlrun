@@ -8,6 +8,8 @@ data/raw/**/*.exe
 data/raw/**/*.dll
 data/raw/**/*.zip
 data/processed/*.parquet
+data/raw/ransmap/
+data/raw/cuckoo_samples/
 # never commit malware or raw sandbox reports containing paths/IPs
 *.bin
 *.sample

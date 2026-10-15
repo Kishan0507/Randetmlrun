@@ -136,3 +136,46 @@ Every metric you quote anywhere must trace to an entry here.
   - virlock (81 samples): 100.00% caught
   - Average Novel Family Detection: **97.95%**
 - Artifacts: `reports/model_comparison.md`
+
+## E-040 | 2026-10-15 | Window classifier baseline on RanSMAP | Task: T-P4-03
+- Run by: Kalyani / Antigravity
+- Git commit: pending   Config: configs/default.yaml   Seed: 42
+- Data: RanSMAP 14 executions (Conti, LockBit, AESCrypt, Firefox, Office), 1,546 windows (W=2.0s, S=1.0s), 21 features
+- Method: 5-Fold Execution-Grouped Cross-Validation (no execution cross-talk) and Leave-One-Family-Out (LOFO) evaluation across LR, LightGBM, Random Forest.
+- Results:
+  - Logistic Regression: BalAcc = 77.64%, Macro-F1 = 0.8052, Precision = 77.72%, Recall = 58.80%, FPR = 3.52%, PR-AUC = 0.7497, ROC-AUC = 0.8751
+  - LightGBM: BalAcc = **84.96%**, Macro-F1 = 0.8839, Precision = 92.23%, Recall = 71.16%, FPR = 1.25%, PR-AUC = 0.8659, ROC-AUC = 0.9435
+  - Random Forest: BalAcc = **85.28%**, Macro-F1 = 0.8964, Precision = 98.44%, Recall = 70.79%, FPR = 0.23%, PR-AUC = 0.8612, ROC-AUC = 0.9370
+  - LOFO Window Detection Rates: Conti = 64.22%, LockBit = 64.56%, Firefox = 87.52% (FPR 12.48%), Office = 86.28% (FPR 13.72%), AESCrypt = 39.63% (FPR 60.37% on single raw windows)
+- Artifacts: `reports/early_detection.md`, `src/models/window_classifier.py`
+
+## E-041 | 2026-10-15 | Streaming decision rules and TTD evaluation | Task: T-P4-04
+- Run by: Kalyani / Antigravity
+- Git commit: pending   Config: configs/default.yaml   Seed: 42
+- Data: RanSMAP executions, streaming window probability series
+- Method: Compared RAW (p >= 0.5), EWMA (alpha=0.3, theta=0.5), EWMA conservative (alpha=0.2, theta=0.7), and k-of-n (2 of 3 >= 0.5). Evaluated TTD, Detect@t (t in 2,5,10,20,30,60,120s), and FA/hour on benign executions.
+- Results:
+  - RAW: 100% catch rate (5/5), Median TTD = 16.0s, Detect@20s = 100%, FA/hr = 16.84, Exec FPR = 66.7%, Data before alert = 12.97 MB
+  - EWMA (alpha=0.3, theta=0.5): 100% catch rate (5/5), Median TTD = **18.0s**, Detect@20s = 80%, Detect@30s = 100%, FA/hr = **2.81**, Exec FPR = 11.1%, Data before alert = 28.93 MB
+  - EWMA Conservative (alpha=0.2, theta=0.7): 100% catch rate (5/5), Median TTD = 21.0s, Detect@30s = 100%, FA/hr = **0.00**, Exec FPR = **0.0%**, Data before alert = 55.75 MB
+  - k-of-n (2 of 3): 100% catch rate (5/5), Median TTD = 17.0s, Detect@20s = 80%, Detect@30s = 100%, FA/hr = 11.23, Exec FPR = 44.4%, Data before alert = 24.76 MB
+- Artifacts: `reports/early_detection.md`, `src/eval/streaming.py`
+
+## E-042 | 2026-10-15 | Cuckoo JSON report prefix truncation prototype | Task: T-P4-05
+- Run by: Kalyani / Antigravity
+- Git commit: pending   Config: configs/default.yaml   Seed: 42
+- Data: Sample Cuckoo JSON reports (10002.json, 10007.json, 10011.json, 10013.json, 10015.json, 10022.json, 10025.json, 10026.json)
+- Method: Time-based event truncation at t in {2, 5, 10, 20, 30, 60, 120}s from process start, extracting dynamic API calls, categories, and rates.
+- Results: Verified end-to-end monotonic behavioral progression. Critical evasion APIs (NtAllocateVirtualMemory, NtProtectVirtualMemory) emerge within the first 2-5 seconds.
+- Artifacts: `src/features/prefix.py`, `tests/test_prefix.py`
+
+## E-044 | 2026-10-15 | Two-stage detection architecture ablation | Task: T-P4-07
+- Run by: Kalyani / Antigravity
+- Git commit: pending   Config: configs/default.yaml   Seed: 42
+- Data: Streaming RanSMAP windows + MLRan holistic classifier
+- Method: Ablation comparing Stage 1 Only (Early Streaming), Stage 2 Only (Full Post-Execution), and Two-Stage Combined (Fast Alert + Holistic Confirmation).
+- Results:
+  - Stage 1 Only: Catch rate = 100%, Median TTD = 18.0s, Overall Benign FPR = 33.3%, AESCrypt FPR = 100% (early warning raises false alarms on benign encryption).
+  - Stage 2 Only: Catch rate = 100%, Median TTD = 120.0s (execution end), Overall Benign FPR = 0.0%, AESCrypt FPR = 0.0% (zero false alarms, but zero early protection; encryption finishes before alert).
+  - Two-Stage Combined: Catch rate = **100%**, Median TTD = **18.0s**, Overall Benign FPR = **0.0%**, AESCrypt FPR = **0.0%** (early soft containment prevents data loss, Stage 2 confirms and dismisses benign crypto).
+- Artifacts: `src/models/two_stage.py`, `tests/test_two_stage.py`, D-005

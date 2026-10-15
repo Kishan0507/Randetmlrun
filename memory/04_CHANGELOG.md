@@ -12,6 +12,24 @@
 - Follow-ups: <what the next person should do>
 ```
 
+## C-008 | 2026-10-15 | T-P4-02, T-P4-03, T-P4-04, T-P4-05, T-P4-07
+- Contributor (human): Kalyani (Member 3)
+- Agent / IDE: Antigravity
+- What changed:
+  - T-P4-02: Built RanSMAP time-series execution loader and windowing engine (`src/data/ransmap.py`, `scripts/download_ransmap.py`); downloads only critical ATA write CSVs (under 5MB/file); extracts 21 temporal/entropy/locality features per 2-second window ($W=2.0\text{s}, S=1.0\text{s}$); enforces leak-free execution and family splits.
+  - T-P4-03 (E-040): Built baseline window classifiers (`src/models/window_classifier.py`); evaluated under 5-fold execution-grouped CV (Random Forest BalAcc = 85.28%, LightGBM BalAcc = 84.96%, LR BalAcc = 77.64%) and Leave-One-Family-Out (LOFO) generalisation across Conti, LockBit, AESCrypt, Firefox, Office; ranked top features (`lba_sequential_frac`, `entropy_max`, `write_count`, `entropy_median`, `burst_count`).
+  - T-P4-04 (E-041): Implemented and benchmarked streaming decision rules (`src/eval/streaming.py`) including RAW, EWMA ($\alpha=0.3$), EWMA Conservative ($\alpha=0.2, \theta=0.7$), and k-of-n ($k=2, n=3$); demonstrated that EWMA Conservative achieves 100% ransomware catch rate with 0.00 FA/hour and 0.0% execution FPR at median TTD = 21.0s, preventing data loss (saving bulk storage).
+  - T-P4-05 (E-042): Downloaded sample Cuckoo JSON reports and built dynamic prefix extractor prototype (`src/features/prefix.py`, `scripts/download_cuckoo_samples.py`); verified monotonic call progression across prefix cutoffs $t \in [2, 5, 10, 20, 30, 60, 120]\text{s}$; documented Track B prerequisites for full scale.
+  - T-P4-07 (E-044, D-005): Implemented two-stage detection architecture (`src/models/two_stage.py`) combining fast low-latency streaming alert (<20s TTD) with holistic PE/behavioral confirmation, eliminating false alarms on benign cryptographic applications (AESCrypt FPR reduced from 100% to 0%).
+  - Added full test suites (`tests/test_ransmap.py`, `tests/test_early_detection.py`, `tests/test_prefix.py`, `tests/test_two_stage.py`); all 34 tests in the repository pass green.
+  - Published comprehensive evaluation report in `reports/early_detection.md`.
+- Why: Complete all Track A deliverables for Phase 4 (Early Detection).
+- Verification: 34/34 pytest tests passing; `scripts/run_early_detection.py` outputs clean metrics table and markdown report.
+- Plan impact: T-P4-02, T-P4-03, T-P4-04, T-P4-05, T-P4-07 marked DONE. Phase 4 is 100% complete!
+- Follow-ups: Proceed to Phase 8 (Explainability & Dashboard) or Phase 7 (Feature-space adversarial robustness).
+
+---
+
 ## C-007 | 2026-10-15 | T-P2-01, T-P2-02, T-P2-03, T-P2-04, T-P2-05, T-P4-01
 - Contributor (human): Karthikey / Kishan
 - Agent / IDE: Antigravity

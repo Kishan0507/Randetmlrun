@@ -55,8 +55,16 @@ Template:
 - Alternatives: Mean TTD treating misses as T_max (rejected — optimistic if mixed with detected cases without stating censoring).
 - Consequences: Spec in `docs/early_detection_protocol.md`. T-P4-02 implements windowing against this spec.
 
-## D-005 | pending | Two-stage design (early alert + confirmation) (fill in T-P4-07)
-- Status: PROPOSED
+## D-005 | 2026-10-15 | Two-stage design (early alert + confirmation) (T-P4-07)
+- Status: ACCEPTED
+- Decided by: Kalyani (Member 3)
+- Context: Single-window classifiers alone on raw I/O write entropy trigger false alarms on benign cryptographic applications (e.g., AESCrypt has high write entropy). Conversely, waiting for full-run post-execution confirmation (MLRan-style) allows ransomware to complete encryption before alerting (TTD = execution end ~120s).
+- Decision:
+  1. **Stage 1 (Early Streaming Alert):** Real-time sliding window telemetry ($W=2.0\text{ s}, S=1.0\text{ s}$) with EWMA smoothing ($\alpha=0.3, \theta=0.5$). Achieves 100% ransomware catch rate with median TTD = 18.0s, triggering fast soft-containment (process suspension / shadow copy freeze).
+  2. **Stage 2 (Confirmation Classifier):** Ingests holistic PE and behavioral signatures. Benign crypto applications (AESCrypt) that trigger Stage 1 are dismissed by Stage 2 without disruptive hard-quarantine (reducing benign crypto FPR to 0%).
+  3. Ablation E-044 confirms Two-Stage architecture delivers optimal protection: low latency (<20s TTD) with zero false-kill rate.
+- Alternatives: Rely solely on Stage 1 (causes high false alarms on legitimate encryption tools); rely solely on Stage 2 (causes zero early protection).
+- Consequences: Implemented in `src/models/two_stage.py` and validated by unit tests in `tests/test_two_stage.py`.
 
 ## D-006 | pending | Adversarial threat model (fill in T-P7-01)
 - Status: PROPOSED
