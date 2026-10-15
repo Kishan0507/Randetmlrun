@@ -66,8 +66,16 @@ Template:
 - Alternatives: Rely solely on Stage 1 (causes high false alarms on legitimate encryption tools); rely solely on Stage 2 (causes zero early protection).
 - Consequences: Implemented in `src/models/two_stage.py` and validated by unit tests in `tests/test_two_stage.py`.
 
-## D-006 | pending | Adversarial threat model (fill in T-P7-01)
-- Status: PROPOSED
+## D-006 | 2026-10-15 | Adversarial threat model & feature-space robustness (T-P7-01)
+- Status: ACCEPTED
+- Decided by: Kalyani (Member 3)
+- Context: Threat model definition required for Phase 7 robustness testing. Live malware generation or evasion payload creation is strictly forbidden by AGENTS.md §4.
+- Decision:
+  1. Testing is strictly **feature-space only** (mathematical perturbations on the 483-dimensional feature vectors).
+  2. Asymmetric capability model: adding benign artifacts (strings, dead APIs, benign registry reads) is low-cost for attackers; removing core encryption I/O entropy is mathematically impossible.
+  3. Evaluated attack vectors: Random bit-flips, Benign feature padding (mimicry), Top-SHAP suppression, and Gradient-guided greedy evasion.
+  4. Defense: Robust feature subsetting (pruning easily spoofable static PE stubs) and adversarial training.
+- Consequences: Documented in `docs/threat_model.md`. Evaluated in `src/adversarial/attacks.py`.
 
 ## D-007 | 2026-10-13 | Evaluation protocol
 - Status: ACCEPTED
