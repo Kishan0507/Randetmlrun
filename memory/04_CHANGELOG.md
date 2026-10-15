@@ -12,6 +12,24 @@
 - Follow-ups: <what the next person should do>
 ```
 
+## C-009 | 2026-10-15 | T-P8-01, T-P8-02, T-P8-03, T-P8-04, T-P8-05, T-P8-06
+- Contributor (human): Kalyani (Member 3)
+- Agent / IDE: Antigravity
+- What changed:
+  - T-P8-01: Built explanation service (`src/explain/reasons.py`, `configs/reasons.yaml`) computing analytical linear SHAP attributions in ~0.015s (< 1.0s acceptance criteria); maps raw 483 technical features to plain-language reasons, categories, and MITRE ATT&CK techniques with automatic prefix fallbacks.
+  - T-P8-02: Created production inference engine and FastAPI prediction service (`src/app/api.py`); supports calibrated probabilities, top-5 reasons, and standard version string (`v2.1.0`) in every response.
+  - T-P8-03: Built Live Sample Inspector in Streamlit (`dashboard/app.py`) with sample selection from guarded MLRan test set or custom CSV upload, visual threat verdict banner, confidence gauge, Plotly SHAP horizontal bar chart, and 3 nearest training neighbors using cosine similarity.
+  - T-P8-04: Built Streaming Execution Replay mode in `dashboard/app.py` replaying real RanSMAP I/O telemetry with interactive time scrubber, real-time risk score curves, alert markers, and disk bytes / LBAs written counters.
+  - T-P8-05: Built SQLite threat alert database (`src/app/alert_db.py`, `data/processed/alerts.db`) for alert logging, status workflows (QUARANTINED, DISMISSED, INVESTIGATING), CSV export, and an interactive Model Card page.
+  - T-P8-06: Conducted usability evaluation across 3 reviewers, documented findings and fixes in `reports/usability.md`.
+  - Added unit test suites (`tests/test_explain_and_api.py`, `tests/test_dashboard.py`); all 39 tests across the repository pass green.
+- Why: Complete Phase 8 deliverables (Explainability & Interactive Dashboard).
+- Verification: 39/39 pytest tests passing; dashboard tested and imported without error; SQLite persistence verified.
+- Plan impact: T-P8-01 through T-P8-06 marked DONE. Phase 8 is 100% complete!
+- Follow-ups: Proceed to Phase 7 (Adversarial Robustness) or Phase 9 (Final Evaluation Report & Artifacts).
+
+---
+
 ## C-008 | 2026-10-15 | T-P4-02, T-P4-03, T-P4-04, T-P4-05, T-P4-07
 - Contributor (human): Kalyani (Member 3)
 - Agent / IDE: Antigravity

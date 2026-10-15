@@ -24,19 +24,25 @@ Last updated: 2026-10-15 by Kalyani (Member 3) / Antigravity
   - T-P4-05 (E-042): Dynamic prefix extractor prototype (`src/features/prefix.py`) verified on sample Cuckoo JSON reports.
   - T-P4-07 (E-044, D-005): Two-stage detection architecture (`src/models/two_stage.py`) combining fast early containment with holistic confirmation, dropping benign crypto FPR to 0.0%.
   - Comprehensive report published in `reports/early_detection.md`.
-- **Test Suite**: 34/34 passing green via `pytest.ini`.
+- **Phase 8 (100% complete)**:
+  - T-P8-01: Explanation service (`src/explain/reasons.py`, `configs/reasons.yaml`) with analytical SHAP (< 0.02s latency) and plain-language security reason translations with MITRE ATT&CK mappings.
+  - T-P8-02: Inference engine and FastAPI prediction service (`src/app/api.py`) returning version string (`v2.1.0`), calibrated confidence, and top reasons.
+  - T-P8-03: Live Sample Inspector in Streamlit (`dashboard/app.py`) with sample selection, confidence gauges, Plotly SHAP bar charts, and 3 nearest training neighbors.
+  - T-P8-04: Streaming Execution Replay mode in `dashboard/app.py` replaying real RanSMAP I/O telemetry with interactive time scrubber, real-time risk score curves, alert markers, and disk bytes / LBAs written counters.
+  - T-P8-05: Threat Alert Database backed by SQLite (`src/app/alert_db.py`, `data/processed/alerts.db`), CSV audit export, and interactive Model Card.
+  - T-P8-06: Usability evaluation documented in `reports/usability.md`.
+- **Test Suite**: 39/39 passing green via `pytest.ini`.
 
 ## In progress
-- Transitioning to next phase: Phase 8 (Explainability and Streamlit Dashboard) or Phase 7 (Feature-space adversarial robustness). Per D-009, priority is Phase 8 (Dashboard).
+- Phase 7 (Feature-space adversarial robustness) & Phase 9 (Final evaluation report and write-up).
 
 ## Next step (do this first)
-1. **T-P8-01**: Explanation service (`src/explain/reasons.py`, `configs/reasons.yaml`) using SHAP feature attributions mapped to plain-language analyst reasons.
-2. **T-P8-02**: Inference API (`src/app/api.py`) exposing `predict(features) -> {verdict, confidence, reasons, model_version}`.
-3. **T-P8-03 & T-P8-04**: Interactive Streamlit Dashboard (`dashboard/app.py`) with sample inspection, feature SHAP waterfall explanations, and streaming RanSMAP execution replay mode.
+1. **Phase 7 (T-P7-01..03)**: Threat model (`docs/threat_model.md`), feature-space perturbation attacks (random bit-flips, benign padding, greedy surrogate attack) in `src/adversarial/attacks.py` (E-070), and model hardening (E-071).
+2. **Phase 9 (T-P9-01..04)**: Final evaluation synthesis, master reproducible experiment table (`reports/final_tables.md`), ablation summary (`reports/ablations.md`), and final comprehensive report (`reports/final_report.md`).
 
 ## Open questions for the user / team
 - None. Track A pipeline is fast, clean, and 100% reproducible on CPU.
 
 ## Gotchas
-- RanSMAP upstream is 32 GB; `scripts/download_ransmap.py` streams only required ATA write CSVs (under 5MB per execution) into `data/raw/ransmap/`.
-- AESCrypt is benign crypto; single raw windows produce high entropy (false alarms), but EWMA smoothing and Stage 2 confirmation completely neutralize them.
+- To launch the interactive dashboard: run `.\.venv\Scripts\streamlit run dashboard/app.py`.
+- SQLite database auto-creates at `data/processed/alerts.db`.

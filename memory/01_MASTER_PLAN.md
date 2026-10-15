@@ -84,12 +84,12 @@ Order of work (updated D-009): P0 → P1 → P3 → P2 → P4 → P8 → P9. T-P
 ## Phase 8 — Explainability and dashboard
 | ID | Task | Track | Depends on | Output | Acceptance criteria | Status | Owner |
 |---|---|---|---|---|---|---|---|
-| T-P8-01 | Explanation service: SHAP (global + per-sample), optional LIME; map raw feature names to **plain-language reasons** via a lookup (e.g. `API:NtAllocateVirtualMemory`+`SIGNATURE:allocates_rwx` → "allocates executable memory — common in code injection") | A | T-P2-01 | `src/explain/reasons.py`, `configs/reasons.yaml` | Top-5 reasons per prediction in < 1 s | TODO | |
-| T-P8-02 | Inference API (FastAPI or plain Python module): `predict(features) → {verdict, confidence, reasons, model_version}`; save/load model with metadata | A | T-P8-01, T-P2-02 | `src/app/api.py` | Unit tests; version string in every response | TODO | |
-| T-P8-03 | Streamlit dashboard v1: pick a sample (test set) or upload feature CSV → verdict card, confidence gauge, top reasons bar chart, similar-sample neighbours | A | T-P8-02 | `dashboard/app.py` | Runs with `streamlit run dashboard/app.py`; screenshot in `reports/` | TODO | |
-| T-P8-04 | Dashboard v2: **replay mode** — stream RanSMAP/prefix windows with a moving risk-score line, alert marker, "files affected before alert" counter | A | T-P4-04, T-P8-03 | dashboard page | Replay of ≥ 3 ransomware and ≥ 3 goodware runs; alert time displayed | TODO | |
-| T-P8-05 | Dashboard v3: alert history table (SQLite), export report (PDF/CSV), model card page (data, metrics, limits) | A | T-P8-04 | dashboard page | Alerts persist across restarts; model card matches `reports/` numbers | TODO | |
-| T-P8-06 | Usability pass: 3 teammates test, collect feedback in `reports/usability.md` | A | T-P8-05 | notes | ≥ 3 findings fixed or logged as patches | TODO | |
+| T-P8-01 | Explanation service: SHAP (global + per-sample), optional LIME; map raw feature names to **plain-language reasons** via a lookup (e.g. `API:NtAllocateVirtualMemory`+`SIGNATURE:allocates_rwx` → "allocates executable memory — common in code injection") | A | T-P2-01 | `src/explain/reasons.py`, `configs/reasons.yaml` | Top-5 reasons per prediction in < 1 s | DONE | Kalyani |
+| T-P8-02 | Inference API (FastAPI or plain Python module): `predict(features) → {verdict, confidence, reasons, model_version}`; save/load model with metadata | A | T-P8-01, T-P2-02 | `src/app/api.py` | Unit tests; version string in every response | DONE | Kalyani |
+| T-P8-03 | Streamlit dashboard v1: pick a sample (test set) or upload feature CSV → verdict card, confidence gauge, top reasons bar chart, similar-sample neighbours | A | T-P8-02 | `dashboard/app.py` | Runs with `streamlit run dashboard/app.py`; screenshot in `reports/` | DONE | Kalyani |
+| T-P8-04 | Dashboard v2: **replay mode** — stream RanSMAP/prefix windows with a moving risk-score line, alert marker, "files affected before alert" counter | A | T-P4-04, T-P8-03 | dashboard page | Replay of ≥ 3 ransomware and ≥ 3 goodware runs; alert time displayed | DONE | Kalyani |
+| T-P8-05 | Dashboard v3: alert history table (SQLite), export report (PDF/CSV), model card page (data, metrics, limits) | A | T-P8-04 | dashboard page | Alerts persist across restarts; model card matches `reports/` numbers | DONE | Kalyani |
+| T-P8-06 | Usability pass: 3 teammates test, collect feedback in `reports/usability.md` | A | T-P8-05 | notes | ≥ 3 findings fixed or logged as patches | DONE | Kalyani |
 
 ## Phase 9 — Evaluation report and write-up
 | ID | Task | Track | Depends on | Output | Acceptance criteria | Status | Owner |

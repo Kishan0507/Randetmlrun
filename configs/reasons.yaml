@@ -1,0 +1,121 @@
+# Plain-language reason mappings for MLRan feature explanations (T-P8-01)
+# Maps raw feature keys and pattern rules to human-interpretable analyst summaries.
+
+patterns:
+  "API:NtProtectVirtualMemory":
+    reason: "Alters memory page protections (e.g., making memory executable) — common in shellcode unpacking and in-memory injection."
+    category: "Defense Evasion"
+    mitre: "T1055.002"
+    severity: "HIGH"
+
+  "API:NtAllocateVirtualMemory":
+    reason: "Dynamically allocates memory blocks in the process address space — often used to unpack obfuscated payload code."
+    category: "Defense Evasion"
+    mitre: "T1055"
+    severity: "MEDIUM"
+
+  "API:CreateProcessInternalW":
+    reason: "Spawns a child process internally — typical of multi-stage ransomware droppers executing secondary payloads."
+    category: "Execution"
+    mitre: "T1059.003"
+    severity: "HIGH"
+
+  "API:LdrGetProcedureAddress":
+    reason: "Dynamically resolves API exports at runtime to evade static import address table (IAT) detection."
+    category: "Execution"
+    mitre: "T1106"
+    severity: "MEDIUM"
+
+  "API:LdrLoadDll":
+    reason: "Dynamically loads shared libraries into the process memory at runtime."
+    category: "Execution"
+    mitre: "T1129"
+    severity: "LOW"
+
+  "API:NtWriteVirtualMemory":
+    reason: "Writes memory into another process space — strong indicator of process hollowing or code injection."
+    category: "Privilege Escalation"
+    mitre: "T1055"
+    severity: "HIGH"
+
+  "API:GetSystemDirectoryA":
+    reason: "Queries system directory location — standard environment reconnaissance."
+    category: "Discovery"
+    mitre: "T1082"
+    severity: "LOW"
+
+  "SIGNATURE:allocates_rwx":
+    reason: "Allocates memory with Read-Write-Execute permissions — characteristic of polymorphic code and shellcode loaders."
+    category: "Defense Evasion"
+    mitre: "T1055"
+    severity: "HIGH"
+
+  "SIGNATURE:allocates_execute_remote_process":
+    reason: "Allocates executable memory in a remote target process — signature of process injection."
+    category: "Defense Evasion"
+    mitre: "T1055.001"
+    severity: "HIGH"
+
+  "SIGNATURE:antisandbox_foregroundwindows":
+    reason: "Monitors active foreground window changes to detect headless automated sandbox environments."
+    category: "Defense Evasion"
+    mitre: "T1497.001"
+    severity: "HIGH"
+
+  "SIGNATURE:packer_entropy":
+    reason: "Binary contains high-entropy sections indicative of compression, packing, or encrypted payloads."
+    category: "Defense Evasion"
+    mitre: "T1027.002"
+    severity: "MEDIUM"
+
+  "STRING:!this program cannot be run in dos mode.":
+    reason: "Standard MS-DOS stub found in PE executables and installers; present in virtually all compiled Windows software."
+    category: "Packaging"
+    mitre: "N/A"
+    severity: "INFORMATIONAL"
+
+  "DIRECTORY:CREATED:c:\\users":
+    reason: "Traverses or creates directories in the user profile — ransomware enumerates user documents here."
+    category: "Discovery"
+    mitre: "T1083"
+    severity: "HIGH"
+
+  "REG:OPENED:HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Run":
+    reason: "Accesses startup registry keys for auto-start execution persistence."
+    category: "Persistence"
+    mitre: "T1547.001"
+    severity: "HIGH"
+
+prefix_fallbacks:
+  "API":
+    reason_template: "Invokes Windows API '{name}' during execution."
+    category: "Dynamic Behavior"
+    mitre: "T1106"
+  "SIGNATURE":
+    reason_template: "Triggers behavioral heuristic signature '{name}'."
+    category: "Suspicious Activity"
+    mitre: "T1027"
+  "DIRECTORY":
+    reason_template: "Accesses or manipulates directory '{name}'."
+    category: "Filesystem Activity"
+    mitre: "T1083"
+  "DROP":
+    reason_template: "Drops or writes secondary payload with extension '.{name}'."
+    category: "Payload Staging"
+    mitre: "T1105"
+  "FILE":
+    reason_template: "Interacts with filesystem object '{name}'."
+    category: "Filesystem Activity"
+    mitre: "T1083"
+  "REG":
+    reason_template: "Accesses Windows Registry key '{name}'."
+    category: "Registry Activity"
+    mitre: "T1112"
+  "STRING":
+    reason_template: "Contains embedded static binary string '{name}'."
+    category: "Static Artifact"
+    mitre: "N/A"
+  "SYSTEM":
+    reason_template: "Loads system library component '{name}'."
+    category: "System Dependency"
+    mitre: "T1129"
