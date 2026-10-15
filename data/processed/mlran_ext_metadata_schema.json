@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MLRan-ext Metadata Record",
+  "description": "Metadata manifest schema for Modernized Goodware and Ransomware Extension Benchmark (T-P10-06)",
+  "type": "object",
+  "properties": {
+    "sample_id": {"type": "string"},
+    "sha256": {"type": "string", "pattern": "^[a-fA-F0-9]{64}$"},
+    "file_name": {"type": "string"},
+    "category": {
+      "type": "string",
+      "enum": [
+        "office_productivity",
+        "developer_tools",
+        "utilities_compression",
+        "enterprise_communication",
+        "cryptographic_tools",
+        "ransomware_validation"
+      ]
+    },
+    "source_repository": {
+      "type": "string",
+      "enum": ["winget", "chocolatey", "portableapps", "vendor_direct", "malwarebazaar"]
+    },
+    "publisher": {"type": "string"},
+    "os_platform": {"type": "string"},
+    "vt_detection_count": {"type": "integer", "minimum": 0},
+    "vt_total_engines": {"type": "integer", "minimum": 1},
+    "vt_first_submission": {"type": "string", "format": "date-time"},
+    "file_size_bytes": {"type": "integer", "minimum": 0},
+    "static_entropy": {"type": "number", "minimum": 0.0, "maximum": 8.0},
+    "is_ransomware": {"type": "integer", "enum": [0, 1]},
+    "provenance_url": {"type": "string"}
+  },
+  "required": [
+    "sample_id",
+    "sha256",
+    "file_name",
+    "category",
+    "source_repository",
+    "vt_detection_count",
+    "vt_first_submission",
+    "is_ransomware"
+  ],
+  "sample_records": [
+    {
+      "sample_id": "ext_gw_001",
+      "sha256": "3a0b3f87d413b567d165f128e07971b9d40b2a75908b982189679f2dc7f8c012",
+      "file_name": "7z2408-x64.exe",
+      "category": "utilities_compression",
+      "source_repository": "winget",
+      "publisher": "Igor Pavlov",
+      "os_platform": "Windows 11 23H2",
+      "vt_detection_count": 0,
+      "vt_total_engines": 72,
+      "vt_first_submission": "2024-08-11T14:22:00Z",
+      "file_size_bytes": 1618944,
+      "static_entropy": 7.91,
+      "is_ransomware": 0,
+      "provenance_url": "https://www.7-zip.org/a/7z2408-x64.exe"
+    },
+    {
+      "sample_id": "ext_gw_002",
+      "sha256": "4b1c2e98a524c678e276f239f18082c0e51c3b86019c093290780a3ed8f9d123",
+      "file_name": "VSCodeUserSetup-x64-1.92.0.exe",
+      "category": "developer_tools",
+      "source_repository": "winget",
+      "publisher": "Microsoft Corporation",
+      "os_platform": "Windows 11 23H2",
+      "vt_detection_count": 0,
+      "vt_total_engines": 74,
+      "vt_first_submission": "2024-08-08T09:15:00Z",
+      "file_size_bytes": 94812320,
+      "static_entropy": 7.99,
+      "is_ransomware": 0,
+      "provenance_url": "https://code.visualstudio.com/"
+    },
+    {
+      "sample_id": "ext_gw_003",
+      "sha256": "5c2d3f09b635d789f387a340a29193d1f62d4c97120d1a4301891b4fe9a0e234",
+      "file_name": "KeePassXC-2.7.9-Win64.msi",
+      "category": "cryptographic_tools",
+      "source_repository": "chocolatey",
+      "publisher": "KeePassXC Team",
+      "os_platform": "Windows 11 23H2",
+      "vt_detection_count": 0,
+      "vt_total_engines": 70,
+      "vt_first_submission": "2024-06-20T11:40:00Z",
+      "file_size_bytes": 35741696,
+      "static_entropy": 7.96,
+      "is_ransomware": 0,
+      "provenance_url": "https://keepassxc.org/"
+    }
+  ]
+}

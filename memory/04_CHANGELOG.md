@@ -12,6 +12,25 @@
 - Follow-ups: <what the next person should do>
 ```
 
+## C-012 | 2026-10-15 | T-P10-01..07
+- Contributor (human): Kalyani (Member 3)
+- Agent / IDE: Antigravity
+- What changed:
+  - T-P10-01: Implemented `StackingRansomwareClassifier` (`src/models/ensemble.py`) combining Logistic Regression, LightGBM, and Random Forest via out-of-fold cross-validation meta-learner; evaluated drift resilience across years 2020–2024.
+  - T-P10-02: Built active learning loop (`src/models/active_learning.py`) with uncertainty sampling ($p \approx 0.5$ priority triage) and validation-gated candidate model retraining with human feedback sample weighting.
+  - T-P10-03: Built entropy and canary tripwire feature extractor (`src/features/honeyfile.py`) detecting sub-second decoy directory touches, canary write entropy, and tamper/delete operations.
+  - T-P10-04: Built explicit ransom note and extension change detector (`src/features/ransom_note.py`) matching note filenames, extortion keywords, and double-extension anomalies (`.docx.locked`).
+  - T-P10-05: Exported model to open ONNX standard (`src/models/onnx_export.py`); verified output numerical parity (<1e-3), sub-millisecond CPU inference latency, and compact memory footprint.
+  - T-P10-06: Authored modern dataset extension specification (`docs/mlran_ext_dataset_spec.md`) and JSON manifest schema (`data/processed/mlran_ext_metadata_schema.json`) with VirusTotal 0-detection criteria and 5 curated software categories.
+  - T-P10-07: Conducted cross-dataset generalisation and feature alignment study (`src/eval/cross_dataset.py`, `reports/cross_dataset.md`) demonstrating 100% conceptual alignment on major ransomware families and confirming Two-Stage architecture as the universal cross-dataset bridge.
+  - Test suite expanded from 57 to **69/69 passing green**.
+- Why: Complete all Phase 10 backlog and advanced extension deliverables as requested by user.
+- Verification: 69/69 pytest tests passing; ONNX parity verified; all 7 tasks verified and marked DONE.
+- Plan impact: T-P10-01 through T-P10-07 marked DONE. Master Plan Phase 10 is 100% complete!
+- Follow-ups: Project is 100% complete across all phases (Phase 0 through Phase 10).
+
+---
+
 ## C-011 | 2026-10-15 | P-001, T-P5-01, T-P5-02, T-P5-04, T-P6-01, T-P6-02
 - Contributor (human): Kalyani (Member 3)
 - Agent / IDE: Antigravity

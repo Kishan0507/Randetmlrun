@@ -109,3 +109,18 @@ Template:
   4. **Deep Sequence Neural Networks (T-P5-03):** Remains **DROPPED**. Reason: PyTorch was deliberately excluded per D-009 for the CPU-only laptop environment, and large-scale sequence training requires the unreleased full raw dataset. Replaced successfully by native GBDT/LR sequential models on RanSMAP (T-P5-04).
   5. **Feature Selection Inside Training Only (T-P1-04):** Remains **BLOCKED**. Reason: Upstream authors have not published the intermediate 24,162 MI-filtered feature dataset (confirmed in D-003). Documented as an acknowledged threat to validity in `reports/limitations.md`.
 
+## D-011 | 2026-10-15 | Completion of Phase 10 backlog: Ensembles, Active Learning, Canary Tripwires, ONNX, and External Validity
+- Status: ACCEPTED
+- Decided by: Kalyani (Member 3) / Antigravity
+- Context: User requested implementation of the Phase 10 backlog tasks (T-P10-01 through T-P10-07) to round out advanced production capabilities and external validity.
+- Decision & Deliverables:
+  1. **Stacking Ensemble (T-P10-01):** Implemented `src/models/ensemble.py` combining Logistic Regression, LightGBM, and Random Forest via out-of-fold cross-validation meta-learner to guard against concept drift.
+  2. **Active Learning (T-P10-02):** Implemented `src/models/active_learning.py` with uncertainty sampling (prioritizing $p \approx 0.5$ samples) and validation-gated candidate model retraining.
+  3. **Honeyfile / Canary Tripwires (T-P10-03):** Implemented `src/features/honeyfile.py` extracting sub-second tripwire signals from decoy directory touches and high-entropy modifications.
+  4. **Ransom Note & Extension Detectors (T-P10-04):** Implemented `src/features/ransom_note.py` for dropped note names, threat keywords, and double-extension detection.
+  5. **ONNX Export & Benchmarking (T-P10-05):** Implemented `src/models/onnx_export.py` exporting trained models to ONNX format with verified sub-millisecond CPU inference latency and small file size.
+  6. **Dataset Specification (T-P10-06):** Authored `docs/mlran_ext_dataset_spec.md` and schema `data/processed/mlran_ext_metadata_schema.json` for community release of modern goodware metadata.
+  7. **Cross-Dataset Generalisation (T-P10-07):** Authored `src/eval/cross_dataset.py` and `reports/cross_dataset.md` evaluating feature alignment and generalisation across MLRan and RanSMAP.
+- Consequences: All 7 Phase 10 tasks marked DONE; test suite expanded to 69/69 passing tests.
+
+

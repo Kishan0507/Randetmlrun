@@ -99,16 +99,16 @@ Order of work (updated D-009, D-010): P0 → P1 → P3 → P2 → P4 → P5 (Tra
 | T-P9-03 | Limitations + threats to validity section (Track A vs B, small RanSMAP families, VT-first-submission as time proxy, sandbox realism) | A | — | `reports/limitations.md` | Reviewed by team | DONE | Kalyani |
 | T-P9-04 | Final report + slides + demo script | A | T-P9-01 | `reports/final_report.*` | Every contributor named with their parts | DONE | Kalyani |
 
-## Phase 10 — Backlog / extras (add anything new here; promote to a phase when scheduled)
-| ID | Idea | Why | Status |
-|---|---|---|---|
-| T-P10-01 | Ensemble / stacking of LR + LightGBM + sequence model | possible accuracy gain with drift robustness | TODO |
-| T-P10-02 | Active-learning loop: dashboard lets analyst label an alert, retrain candidate model | handles drift in practice | TODO |
-| T-P10-03 | Entropy / honeyfile features (decoy-file touch = strong signal) as extra window features | very early signal | TODO |
-| T-P10-04 | Ransom-note and extension-change detectors (strings like "how_to_decrypt") as explicit features | cheap, interpretable | TODO |
-| T-P10-05 | Export model to ONNX; measure endpoint-agent footprint | deployment realism | TODO |
-| T-P10-06 | Dataset paper-style contribution: `MLRan-ext` (Win10/11 + new goodware) release with metadata only | community value | TODO |
-| T-P10-07 | Cross-dataset generalisation: train MLRan → test on other public sets where feature overlap exists | external validity | TODO |
+## Phase 10 — Advanced Extensions & Production Readiness — COMPLETED
+| ID | Idea | Deliverable | Acceptance Criteria | Status | Owner |
+|---|---|---|---|---|---|
+| T-P10-01 | Ensemble / stacking of LR + LightGBM for drift robustness | `src/models/ensemble.py`, `tests/test_ensemble.py` | Out-of-fold meta-learner prevents leakage; unit tests pass | DONE | Kalyani |
+| T-P10-02 | Active-learning loop: dashboard analyst feedback & model retraining | `src/models/active_learning.py`, `tests/test_active_learning.py` | Uncertainty sampler + candidate retrainer with validation gating | DONE | Kalyani |
+| T-P10-03 | Entropy / honeyfile features as early tripwire signal | `src/features/honeyfile.py`, `tests/test_honeyfile.py` | Decoy path & write entropy tripwire detection; tests pass | DONE | Kalyani |
+| T-P10-04 | Ransom-note and extension-change detectors | `src/features/ransom_note.py`, `tests/test_ransom_note.py` | Dropped note, keyword, and double-extension detection; tests pass | DONE | Kalyani |
+| T-P10-05 | Export model to ONNX & benchmark endpoint footprint | `src/models/onnx_export.py`, `tests/test_onnx.py` | ONNX graph exported; parity verified (<1e-3); sub-ms latency | DONE | Kalyani |
+| T-P10-06 | Dataset contribution: `MLRan-ext` metadata release | `docs/mlran_ext_dataset_spec.md`, `data/processed/mlran_ext_metadata_schema.json` | Hash schema, VT 0-detection policy, and goodware taxonomy | DONE | Kalyani |
+| T-P10-07 | Cross-dataset generalisation: MLRan vs RanSMAP | `src/eval/cross_dataset.py`, `reports/cross_dataset.md`, `tests/test_cross_dataset.py` | Feature space alignment & 100% major family overlap documented | DONE | Kalyani |
 
 ---
 ## How to add a task
