@@ -12,6 +12,21 @@
 - Follow-ups: <what the next person should do>
 ```
 
+## C-010 | 2026-10-15 | T-P9-01, T-P9-02, T-P9-03, T-P9-04
+- Contributor (human): Kalyani (Member 3)
+- Agent / IDE: Antigravity
+- What changed:
+  - T-P9-01: Master experiment tables and reproducibility script (`scripts/reproduce_all.py`, `reports/final_tables.md`) with 16 experiments traced across all phases (E-001 through E-071).
+  - T-P9-02: Comprehensive ablation study (`reports/ablations.md`) with systematic on/off evaluation of calibration, drift mitigation, streaming rules, two-stage architecture, and adversarial hardening — including honest negative results (FPR/recall trade-offs).
+  - T-P9-03: Limitations and threats to validity (`reports/limitations.md`) covering Track A vs Track B scope, source bifurcation (A14), small RanSMAP families, VT first-submission proxy, RFE test snooping (A1), sandbox realism, adversarial feature-space caveats, and 10 summary threats with severity ratings.
+  - T-P9-04: Comprehensive final project report (`reports/final_report.md`) synthesising all 9 phases, contributor credits, key performance numbers, improvements over MLRan paper (10 dimensions), reproducibility guide, repository structure, and complete experiment index.
+- Why: Complete Phase 9 deliverables (Final Evaluation Report & Write-up). All Track A work is now finished.
+- Verification: All 4 artifacts written and cross-referenced; master plan T-P9-01..04 marked DONE; test suite integrity maintained.
+- Plan impact: T-P9-01 through T-P9-04 marked DONE. Phase 9 is 100% complete! All Track A phases (0, 1, 2, 3, 4, 7, 8, 9) are now DONE.
+- Follow-ups: Only Phase 10 backlog items remain (optional extras). Project is feature-complete for Track A.
+
+---
+
 ## C-009 | 2026-10-15 | T-P8-01, T-P8-02, T-P8-03, T-P8-04, T-P8-05, T-P8-06
 - Contributor (human): Kalyani (Member 3)
 - Agent / IDE: Antigravity
