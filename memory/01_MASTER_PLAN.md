@@ -29,11 +29,11 @@ Order of work (updated D-009): P0 → P1 → P3 → P2 → P4 → P8 → P9. T-P
 ## Phase 2 — Better models (binary, type, family)
 | ID | Task | Track | Depends on | Output | Acceptance criteria | Status | Owner |
 |---|---|---|---|---|---|---|---|
-| T-P2-01 | Wider model comparison on same features: LR (L1/L2/elastic), linear SVM, RF, ExtraTrees, LightGBM, XGBoost, CatBoost (optional), small MLP. Wider tuning grid, chronological CV (expanding window) | A | T-P1-03 | E-010.. | Table with metrics + train/predict time; best model chosen by validation, not test | TODO | |
-| T-P2-02 | Probability calibration (Platt/isotonic) and operating-point selection under an FPR budget (e.g. FPR ≤ 1%) | A | T-P2-01 | `src/models/calibrate.py` | Reliability curve; chosen threshold stored in config | TODO | |
-| T-P2-03 | Family classification v2: class-weighting, hierarchical (binary → type → family), macro-F1 objective, merge/ignore families with < N samples (documented), report per-family recall | A | T-P2-01 | E-020.. | Balanced acc and macro-F1 beat paper's 47.07% bal. acc.; per-family table | TODO | |
-| T-P2-04 | "Unknown family" rejection: confidence threshold / one-vs-rest so unseen families are flagged instead of mislabelled | A | T-P2-03 | E-025 | Leave-one-family-out test: report how often an unseen family is still caught as ransomware | TODO | |
-| T-P2-05 | Efficiency study: inference latency and model size per model (the paper only reports training time) | A | T-P2-01 | table | ms/sample and MB for each model | TODO | |
+| T-P2-01 | Wider model comparison on same features: LR (L1/L2/elastic), linear SVM, RF, ExtraTrees, LightGBM, XGBoost, CatBoost (optional), small MLP. Wider tuning grid, chronological CV (expanding window) | A | T-P1-03 | E-010.. | Table with metrics + train/predict time; best model chosen by validation, not test | DONE | Karthikey / Kishan |
+| T-P2-02 | Probability calibration (Platt/isotonic) and operating-point selection under an FPR budget (e.g. FPR ≤ 1%) | A | T-P2-01 | `src/models/calibrate.py` | Reliability curve; chosen threshold stored in config | DONE | Karthikey / Kishan |
+| T-P2-03 | Family classification v2: class-weighting, hierarchical (binary → type → family), macro-F1 objective, merge/ignore families with < N samples (documented), report per-family recall | A | T-P2-01 | E-020.. | Balanced acc and macro-F1 beat paper's 47.07% bal. acc.; per-family table | DONE | Karthikey / Kishan |
+| T-P2-04 | "Unknown family" rejection: confidence threshold / one-vs-rest so unseen families are flagged instead of mislabelled | A | T-P2-03 | E-025 | Leave-one-family-out test: report how often an unseen family is still caught as ransomware | DONE | Karthikey / Kishan |
+| T-P2-05 | Efficiency study: inference latency and model size per model (the paper only reports training time) | A | T-P2-01 | table | ms/sample and MB for each model | DONE | Karthikey / Kishan |
 
 ## Phase 3 — Concept drift and false positives
 | ID | Task | Track | Depends on | Output | Acceptance criteria | Status | Owner |
@@ -47,7 +47,7 @@ Order of work (updated D-009): P0 → P1 → P3 → P2 → P4 → P8 → P9. T-P
 ## Phase 4 — Early detection (core contribution)
 | ID | Task | Track | Depends on | Output | Acceptance criteria | Status | Owner |
 |---|---|---|---|---|---|---|---|
-| T-P4-01 | Define early-detection protocol in `docs/early_detection_protocol.md`: time-to-detection (TTD), detection rate @ t seconds (t = 2,5,10,20,30,60,120), files/bytes affected before alert, false alarms per hour of goodware | A | — | doc + decision D-004 | Metrics defined with formulas and edge cases (never detected = censored at max time) | TODO | |
+| T-P4-01 | Define early-detection protocol in `docs/early_detection_protocol.md`: time-to-detection (TTD), detection rate @ t seconds (t = 2,5,10,20,30,60,120), files/bytes affected before alert, false alarms per hour of goodware | A | — | doc + decision D-004 | Metrics defined with formulas and edge cases (never detected = censored at max time) | DONE | Kishan |
 | T-P4-02 | Load RanSMAP executions as windowed time series (fixed window, stride); label windows pre-encryption / encryption / benign | A | T-P0-02 | `src/data/ransmap.py`, tests | One execution → list of windows; labelling rule documented; no leakage across executions in train/test (group split by execution and by family) | TODO | |
 | T-P4-03 | Window classifier baseline (LightGBM/LR on window statistics) → per-window ransomware probability | A | T-P4-02 | E-040 | Window-level metrics; family-held-out split reported | TODO | |
 | T-P4-04 | Streaming decision rule: smoothing (EWMA / k-of-n windows) + threshold → alert time; compare rules | A | T-P4-03, T-P2-02 | E-041 | TTD distribution, detection@t, false alarms per hour | TODO | |
