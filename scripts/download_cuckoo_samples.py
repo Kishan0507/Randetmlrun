@@ -5,14 +5,26 @@ from pathlib import Path
 import urllib.request
 
 SAMPLES = [
-    "10002.json",  # 174 KB
-    "10007.json",  # 157 KB
-    "10011.json",  # 65 KB
-    "10015.json",  # 98 KB
-    "10022.json",  # 266 KB
-    "10013.json",  # 464 KB
-    "10025.json",  # 452 KB
-    "10026.json",  # 531 KB
+    "10002.json",
+    "10003.json",
+    "10005.json",
+    "10007.json",
+    "10008.json",
+    "10011.json",
+    "10012.json",
+    "10013.json",
+    "10014.json",
+    "10015.json",
+    "10016.json",
+    "10017.json",
+    "10021.json",
+    "10022.json",
+    "10025.json",
+    "10026.json",
+    "10027.json",
+    "10028.json",
+    "10029.json",
+    "10030.json",
 ]
 
 BASE_URL = "https://raw.githubusercontent.com/faithfulco/mlran/main/4_cuckoo_parser_scripts/json_reports/"

@@ -97,3 +97,15 @@ Template:
   4. **Priority order:** P0 setup/audit → P1 baseline + leak-free → P3 drift/FP → P2 family classification → P4 early detection on RanSMAP → P8 dashboard → P9 report. T-P7-01/02 (feature-space adversarial test) optional last.
 - Alternatives: Keep full scope (rejected — not feasible in available time with CPU-only HW).
 - Consequences: Master plan updated; requirements.txt removes torch; Phases 5, 6 dropped; Track B tasks marked DROPPED in plan.
+
+## D-010 | 2026-10-15 | Dropped tasks audit & completion of Track A sequential & network pipelines
+- Status: ACCEPTED
+- Decided by: Kalyani (Member 3) / Antigravity
+- Context: User requested investigation into all DROPPED tasks across phases to complete feasible tasks and confirm why remaining tasks cannot run.
+- Audit Findings & Decisions:
+  1. **Phase 5 Sequential Features (T-P5-01, T-P5-02, T-P5-04):** Feasible on Track A data. Implemented `src/features/sequence.py` (API n-grams, transition matrix, inter-call delays, ransomware attack lifecycle pattern matching) tested on all 20 Cuckoo JSON reports. Augmented RanSMAP dataset with sequential trajectory features (`src/features/sequential_ransmap.py`) and executed E-051 (`scripts/run_sequence_experiments.py`), achieving +6.31% BalAcc on LR (83.96%) and +2.62% BalAcc on LightGBM (87.58%) with +11.61% recall gain. Marked T-P5-01, T-P5-02, T-P5-04 as **DONE**.
+  2. **Phase 6 Network Features (T-P6-01, T-P6-02):** Feasible on Track A data. Designed 12 flow-level features in `docs/network_features.md` explaining why the original paper dropped them (sandbox network isolation caused near-zero mutual information). Implemented robust extractor `src/features/network.py` and unit tests in `tests/test_network.py` across all 20 Cuckoo reports. Marked T-P6-01, T-P6-02 as **DONE**.
+  3. **Track B Tasks (T-P3-05, T-P4-06, T-P6-03, T-P7-B1, T-P7-B2, T-P7-B3):** Must remain **DROPPED**. Reason: Track B tasks require live ransomware sample execution in an external isolated Windows 10/11 sandbox VM, which is strictly prohibited inside the repository per AGENTS.md §4 ("Do not write, modify, obfuscate or improve ransomware... Live malware execution is done only by a human in an isolated VM outside this repo"). Additionally, the upstream authors have not released the full 4,880 raw execution traces or network PCAPs.
+  4. **Deep Sequence Neural Networks (T-P5-03):** Remains **DROPPED**. Reason: PyTorch was deliberately excluded per D-009 for the CPU-only laptop environment, and large-scale sequence training requires the unreleased full raw dataset. Replaced successfully by native GBDT/LR sequential models on RanSMAP (T-P5-04).
+  5. **Feature Selection Inside Training Only (T-P1-04):** Remains **BLOCKED**. Reason: Upstream authors have not published the intermediate 24,162 MI-filtered feature dataset (confirmed in D-003). Documented as an acknowledged threat to validity in `reports/limitations.md`.
+

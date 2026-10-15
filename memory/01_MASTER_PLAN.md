@@ -4,7 +4,7 @@ Status values: `TODO` · `IN_PROGRESS` · `DONE` · `BLOCKED` · `DROPPED`
 Track: **A** = data-only (default). **B** = needs our own sandbox + approval (optional).
 Update the Status column every session. Add new tasks at the end of a phase with the next free ID. Do not renumber.
 
-Order of work (updated D-009): P0 → P1 → P3 → P2 → P4 → P8 → P9. T-P7-01/02 optional last. Phases 5, 6 and all Track B: DROPPED.
+Order of work (updated D-009, D-010): P0 → P1 → P3 → P2 → P4 → P5 (Track A) → P6 (Track A) → P7 → P8 → P9. Track B tasks (sandbox/live execution) and deep sequence NNs remain DROPPED.
 
 ---
 ## Phase 0 — Setup, audit, data access
@@ -42,7 +42,7 @@ Order of work (updated D-009): P0 → P1 → P3 → P2 → P4 → P8 → P9. T-P
 | T-P3-02 | Error analysis of the 12 baseline false positives: which features fire (SHAP/LIME), which goodware (names in metadata), common cause (e.g. packer entropy, DOS-stub string, registry reads) | A | T-P1-01 | `reports/fp_analysis.md` | Each FP has top-5 features + hypothesis | DONE | Kishan |
 | T-P3-03 | Drift mitigation experiments: (a) sliding-window retraining, (b) recency sample weights, (c) cost-sensitive loss on goodware, (d) periodic recalibration, (e) drift detector (e.g. ADWIN/PSI on feature distribution) | A | T-P3-01 | E-030.. | Table: FPR on 2023–24 goodware and overall bal. acc. for each strategy | DONE | Kishan |
 | T-P3-04 | Write **goodware expansion protocol** `docs/goodware_protocol.md`: sources (Microsoft Store/winget, Chocolatey, enterprise/office tools, installers of 2023–25, portable apps), VirusTotal 0-detection rule, category quotas, dedupe, metadata schema | A | — | doc | Doc reviewed by team; ready for Track B execution | DONE | Kishan |
-| T-P3-05 | **(Track B)** Collect and run new goodware in the sandbox; add as `MLRan-ext` with the same feature extractor | B | T-P3-04, T-P7-B1 | new feature rows | ≥ 500 new goodware, ≥ 5 sources, all VT-clean; FPR re-measured | DROPPED (D-009) | |
+| T-P3-05 | **(Track B)** Collect and run new goodware in the sandbox; add as `MLRan-ext` with the same feature extractor | B | T-P3-04, T-P7-B1 | new feature rows | ≥ 500 new goodware, ≥ 5 sources, all VT-clean; FPR re-measured | DROPPED (Track B: requires isolated sandbox VM and supervisor sign-off; outside repo scope per AGENTS.md §4) | |
 
 ## Phase 4 — Early detection (core contribution)
 | ID | Task | Track | Depends on | Output | Acceptance criteria | Status | Owner |
@@ -52,23 +52,23 @@ Order of work (updated D-009): P0 → P1 → P3 → P2 → P4 → P8 → P9. T-P
 | T-P4-03 | Window classifier baseline (LightGBM/LR on window statistics) → per-window ransomware probability | A | T-P4-02 | E-040 | Window-level metrics; family-held-out split reported | DONE | Kalyani |
 | T-P4-04 | Streaming decision rule: smoothing (EWMA / k-of-n windows) + threshold → alert time; compare rules | A | T-P4-03, T-P2-02 | E-041 | TTD distribution, detection@t, false alarms per hour | DONE | Kalyani |
 | T-P4-05 | Prefix evaluation on MLRan: using the 20 sample Cuckoo JSONs, truncate API/call logs at t seconds and re-extract the 9 feature groups; prototype only (too few for conclusions) | A | T-P0-04 | `src/features/prefix.py`, E-042 | Works end-to-end on 20 reports; documents what needs Track B for scale | DONE | Kalyani |
-| T-P4-06 | **(Track B)** Prefix evaluation at scale: truncate full Cuckoo reports at t seconds for all runs; train on prefixes; detection rate vs t curve | B | T-P7-B2 | E-043 | Curve for t ∈ {2,5,10,20,30,60,120}s; claim "detects X% within N s" | DROPPED (D-009) | |
+| T-P4-06 | **(Track B)** Prefix evaluation at scale: truncate full Cuckoo reports at t seconds for all runs; train on prefixes; detection rate vs t curve | B | T-P7-B2 | E-043 | Curve for t ∈ {2,5,10,20,30,60,120}s; claim "detects X% within N s" | DROPPED (Track B: upstream full 4,880 Cuckoo reports unreleased; prototype completed in T-P4-05 on available 20 reports) | |
 | T-P4-07 | Combine: early-warning score from windows (RanSMAP-style) + full-report classifier (MLRan-style) as a two-stage system (fast early alert, slower confirmation) | A | T-P4-04 | design note D-005 + E-044 | Ablation: early only vs confirm only vs both | DONE | Kalyani |
 
-## Phase 5 — Order and timing (sequence models) — DROPPED (D-009)
+## Phase 5 — Order and timing (sequence models) — COMPLETED (Track A) / DROPPED (Track B & NNs)
 | ID | Task | Track | Depends on | Output | Acceptance criteria | Status | Owner |
 |---|---|---|---|---|---|---|---|
-| T-P5-01 | API sequence representation: n-grams (n=2,3), TF-IDF, ordered-transition counts, time-gap features (inter-call delay) from Cuckoo `behavior.processes[].calls[]` | A (20 reports) / B (scale) | T-P4-05 | `src/features/sequence.py` | Unit test on a sample report; feature spec in docs | DROPPED (D-009) | |
-| T-P5-02 | Pattern features for "find files → open → read/write → rename/delete" (FindFirstFile/NtQueryDirectoryFile → NtCreateFile → NtWriteFile → MoveFile/DeleteFile), rate features (file ops per second, extension changes) | A / B | T-P5-01 | feature set | Documented, explained with examples | DROPPED (D-009) | |
-| T-P5-03 | Models: n-gram + LR/LightGBM; 1D-CNN; GRU; small Transformer. Compare with presence-only baseline | B (needs scale) | T-P5-01, T-P7-B2 | E-050.. | Table; claim only if gain > bootstrap CI | DROPPED (D-009) | |
-| T-P5-04 | If Track B is not approved: do the same on RanSMAP time series (order/timing there is native) | A | T-P4-03 | E-051 | Sequence model vs window-stat model on RanSMAP | DROPPED (D-009) | |
+| T-P5-01 | API sequence representation: n-grams (n=2,3), TF-IDF, ordered-transition counts, time-gap features (inter-call delay) from Cuckoo `behavior.processes[].calls[]` | A (20 reports) / B (scale) | T-P4-05 | `src/features/sequence.py` | Unit test on a sample report; feature spec in docs | DONE | Kalyani |
+| T-P5-02 | Pattern features for "find files → open → read/write → rename/delete" (FindFirstFile/NtQueryDirectoryFile → NtCreateFile → NtWriteFile → MoveFile/DeleteFile), rate features (file ops per second, extension changes) | A / B | T-P5-01 | `src/features/sequence.py` | Documented, explained with examples; unit tests green | DONE | Kalyani |
+| T-P5-03 | Models: n-gram + LR/LightGBM; 1D-CNN; GRU; small Transformer. Compare with presence-only baseline | B (needs scale) | T-P5-01, T-P7-B2 | E-050.. | Table; claim only if gain > bootstrap CI | DROPPED (Requires PyTorch excluded per D-009 CPU-only constraint and unreleased full raw reports; replaced by T-P5-04 on RanSMAP) | |
+| T-P5-04 | If Track B is not approved: do the same on RanSMAP time series (order/timing there is native) | A | T-P4-03 | `src/features/sequential_ransmap.py`, `scripts/run_sequence_experiments.py`, E-051 | Sequence model vs window-stat model on RanSMAP | DONE | Kalyani |
 
-## Phase 6 — Network features (paper dropped all of them) — DROPPED (D-009)
+## Phase 6 — Network features — COMPLETED (Track A) / DROPPED (Track B)
 | ID | Task | Track | Depends on | Output | Acceptance criteria | Status | Owner |
 |---|---|---|---|---|---|---|---|
-| T-P6-01 | Design flow-level features from Cuckoo network section: #DNS queries, #distinct hosts, #distinct ports, bytes in/out, TLS vs plain, connection burst rate, newly-seen-domain ratio, TLD entropy, failed-connection ratio | A (design) | — | `docs/network_features.md` | Each feature defined, with extraction source field | DROPPED (D-009) | |
-| T-P6-02 | Implement extractor, test on 20 sample reports | A | T-P6-01 | `src/features/network.py` | Tests pass | DROPPED (D-009) | |
-| T-P6-03 | **(Track B)** Re-evaluate: add network group to the feature set, re-run feature selection, check if any group survives | B | T-P6-02, T-P7-B2 | E-060 | Report survival count vs paper's 0/483 | DROPPED (D-009) | |
+| T-P6-01 | Design flow-level features from Cuckoo network section: #DNS queries, #distinct hosts, #distinct ports, bytes in/out, TLS vs plain, connection burst rate, newly-seen-domain ratio, TLD entropy, failed-connection ratio | A (design) | — | `docs/network_features.md` | Each feature defined, with extraction source field and rationale for paper dropout | DONE | Kalyani |
+| T-P6-02 | Implement extractor, test on 20 sample reports | A | T-P6-01 | `src/features/network.py` | Tests pass on all 20 Cuckoo reports; unit tests in `tests/test_network.py` | DONE | Kalyani |
+| T-P6-03 | **(Track B)** Re-evaluate: add network group to the feature set, re-run feature selection, check if any group survives | B | T-P6-02, T-P7-B2 | E-060 | Report survival count vs paper's 0/483 | DROPPED (Track B: full 4,880 network traces unreleased; survival evaluated on prototype in docs/network_features.md) | |
 
 ## Phase 7 — Robustness (feature-space only) and modern-OS validity
 | ID | Task | Track | Depends on | Output | Acceptance criteria | Status | Owner |
@@ -77,9 +77,9 @@ Order of work (updated D-009): P0 → P1 → P3 → P2 → P4 → P8 → P9. T-P
 | T-P7-02 | Perturbation attacks on feature vectors: (a) random bit-flips, (b) benign-feature padding (add features common in goodware), (c) remove top-k SHAP ransomware features, (d) gradient-guided greedy attack on LR / surrogate | A | T-P7-01, T-P2-01 | `src/adversarial/attacks.py`, E-070 | Evasion rate vs budget curve for each model | DONE | Kalyani |
 | T-P7-03 | Hardening: adversarial training, feature-group dropout, monotonic constraints (LightGBM), robust feature subset (drop features attacker can add freely) | A | T-P7-02 | E-071 | Evasion rate curve before vs after; clean-accuracy cost reported | DONE | Kalyani |
 | T-P7-04 | Report **execution failure / evasion rate** per source (the paper reports counts that drop out: e.g. MOTIF 443→426, MarauderMap 621→575, curated 785→777, Software Informer 2696→2550) | A | T-P0-05 | `reports/execution_failures.md` | Table of dropouts per source with fractions and discussion of sandbox evasion | DONE | Kalyani |
-| T-P7-B1 | **(Track B)** Build isolated Windows 10/11 sandbox (e.g. CAPEv2 or Cuckoo-based) with Defender state recorded, no real network, snapshots, human-activity simulation, 120 s timeout + longer timeout subset | B | approval (D-001) | `docs/sandbox_setup.md` | Written runbook; supervisor sign-off recorded | DROPPED (D-009) | |
-| T-P7-B2 | **(Track B)** Re-run a stratified subset (by hash from metadata CSV) on Win10/11; keep raw reports locally, share only derived features | B | T-P7-B1 | `MLRan-Win10` features | ≥ 500 ransomware (≥ 20 families) + ≥ 500 goodware; failure rate logged | DROPPED (D-009) | |
-| T-P7-B3 | **(Track B)** Cross-OS check: train on Win7 features, test on Win10/11 features and vice versa | B | T-P7-B2 | E-072 | Degradation table | DROPPED (D-009) | |
+| T-P7-B1 | **(Track B)** Build isolated Windows 10/11 sandbox (e.g. CAPEv2 or Cuckoo-based) with Defender state recorded, no real network, snapshots, human-activity simulation, 120 s timeout + longer timeout subset | B | approval (D-001) | `docs/sandbox_setup.md` | Written runbook; supervisor sign-off recorded | DROPPED (Track B: requires live malware execution in isolated VM; forbidden in repository per AGENTS.md §4) | |
+| T-P7-B2 | **(Track B)** Re-run a stratified subset (by hash from metadata CSV) on Win10/11; keep raw reports locally, share only derived features | B | T-P7-B1 | `MLRan-Win10` features | ≥ 500 ransomware (≥ 20 families) + ≥ 500 goodware; failure rate logged | DROPPED (Track B: requires live malware execution in isolated VM; forbidden in repository per AGENTS.md §4) | |
+| T-P7-B3 | **(Track B)** Cross-OS check: train on Win7 features, test on Win10/11 features and vice versa | B | T-P7-B2 | E-072 | Degradation table | DROPPED (Track B: requires live malware execution in isolated VM; forbidden in repository per AGENTS.md §4) | |
 
 ## Phase 8 — Explainability and dashboard
 | ID | Task | Track | Depends on | Output | Acceptance criteria | Status | Owner |

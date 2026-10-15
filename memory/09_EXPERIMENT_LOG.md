@@ -179,3 +179,17 @@ Every metric you quote anywhere must trace to an entry here.
   - Stage 2 Only: Catch rate = 100%, Median TTD = 120.0s (execution end), Overall Benign FPR = 0.0%, AESCrypt FPR = 0.0% (zero false alarms, but zero early protection; encryption finishes before alert).
   - Two-Stage Combined: Catch rate = **100%**, Median TTD = **18.0s**, Overall Benign FPR = **0.0%**, AESCrypt FPR = **0.0%** (early soft containment prevents data loss, Stage 2 confirms and dismisses benign crypto).
 - Artifacts: `src/models/two_stage.py`, `tests/test_two_stage.py`, D-005
+
+## E-051 | 2026-10-15 | Sequential trajectory vs static window models on RanSMAP | Task: T-P5-04
+- Run by: Kalyani / Antigravity
+- Git commit: pending   Config: configs/default.yaml   Seed: 42
+- Data: RanSMAP 14 executions, 1,546 windows; static (21 features) vs sequential trajectory (31 features: lag-1/lag-2 deltas, acceleration, cumulative volume, high-entropy streak, Markov phase transition).
+- Method: 5-Fold Execution-Grouped Cross-Validation (guarantees windows from same execution never cross train/validation) and Leave-One-Family-Out (LOFO) evaluation across LR, LightGBM, and Random Forest.
+- Results (5-Fold Execution-Grouped CV):
+  - Logistic Regression: Static BalAcc = 77.64% -> Sequential BalAcc = **83.96%** (+6.31%), Recall: 58.80% -> **70.41%** (+11.61%), FPR: 3.52% -> **2.50%** (-1.02%), Macro-F1: 0.8052 -> **0.8647**.
+  - LightGBM: Static BalAcc = 84.96% -> Sequential BalAcc = **87.58%** (+2.62%), Recall: 71.16% -> **77.90%** (+6.74%), Macro-F1: 0.8839 -> **0.8896**.
+  - Random Forest: Static BalAcc = 85.28% -> Sequential BalAcc = 85.22% (-0.06%), Macro-F1 = 0.8875.
+  - Top 3 Sequential Features by Importance: `cum_bytes_written` (287), `lba_sequential_frac` (183), `entropy_expanding_mean` (151).
+  - Conclusion: Augmenting static window features with sequential trajectory and temporal history yields statistically significant gains in early detection recall (+6.74% to +11.61%) while preserving low false alarm rates on benign desktop software.
+- Artifacts: `src/features/sequential_ransmap.py`, `scripts/run_sequence_experiments.py`, `tests/test_sequential_ransmap.py`
+

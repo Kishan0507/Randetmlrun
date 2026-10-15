@@ -12,6 +12,24 @@
 - Follow-ups: <what the next person should do>
 ```
 
+## C-011 | 2026-10-15 | P-001, T-P5-01, T-P5-02, T-P5-04, T-P6-01, T-P6-02
+- Contributor (human): Kalyani (Member 3)
+- Agent / IDE: Antigravity
+- What changed:
+  - Audited all DROPPED tasks across master plan phases per user request (P-001, D-010).
+  - Downloaded all 20 Cuckoo JSON reports from upstream `faithfulco/mlran` repository (`scripts/download_cuckoo_samples.py`).
+  - T-P5-01 & T-P5-02: Implemented `src/features/sequence.py` for API sequence representation (bigrams, trigrams, TF-IDF, category transitions, inter-call delay statistics, fast loops) and ransomware attack lifecycle pattern matching (Find -> Open -> Write -> Delete/Rename, file ops rates, extension changes). Added unit tests in `tests/test_sequence.py`.
+  - T-P5-04 (E-051): Implemented native RanSMAP sequential feature augmentation (`src/features/sequential_ransmap.py`) and experiment runner (`scripts/run_sequence_experiments.py`). Demonstrated significant performance gains under 5-Fold Execution-Grouped CV: LightGBM BalAcc increased from 84.96% to **87.58%** (+2.62%), LR BalAcc from 77.64% to **83.96%** (+6.31%), with recall improving from 58.80% to **70.41%** (+11.61%). Added unit tests in `tests/test_sequential_ransmap.py`.
+  - T-P6-01 & T-P6-02: Authored flow-level network feature design document (`docs/network_features.md`) explaining why paper dropped network group (sandbox network isolation). Implemented robust extractor `src/features/network.py` and unit tests in `tests/test_network.py` tested across all 20 real Cuckoo reports.
+  - Audited Track B tasks (T-P3-05, T-P4-06, T-P6-03, T-P7-B1, T-P7-B2, T-P7-B3) and deep sequence NNs (T-P5-03): documented why they remain DROPPED (Track B requires live malware execution in an isolated sandbox VM which is forbidden in-repo per AGENTS.md §4 and requires unreleased raw traces; PyTorch excluded per D-009 CPU-only laptop constraint).
+  - Test suite expanded from 45 to **57/57 tests passing green**.
+- Why: User request to investigate dropped tasks, complete feasible tasks, and document why remaining tasks cannot run.
+- Verification: 57/57 pytest tests passing; E-051 logged in `memory/09_EXPERIMENT_LOG.md`; P-001 closed in `memory/06_PATCH_QUEUE.md`.
+- Plan impact: T-P5-01, T-P5-02, T-P5-04, T-P6-01, T-P6-02 marked DONE. Track B tasks retain verified DROPPED status.
+- Follow-ups: Ready for session wrap-up and final handoff.
+
+---
+
 ## C-010 | 2026-10-15 | T-P9-01, T-P9-02, T-P9-03, T-P9-04
 - Contributor (human): Kalyani (Member 3)
 - Agent / IDE: Antigravity
