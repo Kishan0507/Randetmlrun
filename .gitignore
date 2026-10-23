@@ -11,7 +11,14 @@ data/processed/*.parquet
 data/raw/ransmap/
 data/raw/cuckoo_samples/
 data/raw/malware_API_dataset.csv
-datasets/malware_API_dataset.csv
+# datasets: raw dataset files are kept locally and not tracked in git
+datasets/*.csv
+datasets/*.zip
+datasets/Ransomware.csv
+datasets/data_file.csv
+datasets/ransom.csv
+datasets/ransomset-multiclass-dataset.csv
+datasets/malware_API_dataset*
 # never commit malware or raw sandbox reports containing paths/IPs
 *.bin
 *.sample
