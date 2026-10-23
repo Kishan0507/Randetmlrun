@@ -555,8 +555,55 @@
 
     <!-- ═══════════ TAB 1: MODEL COMPARISON ═══════════ -->
     <div class="tab-panel active" id="tab-comparison">
-        <h2 class="section-title"><span class="icon">📊</span> Model Performance Comparison</h2>
-        <p class="section-desc">Test-set evaluation of 10 classifiers. Model selection was done via expanding-window chronological CV on training data only — the test column is a one-shot unbiased report.</p>
+        <!-- Dynamic Live Attack Simulation Engine -->
+        <div class="card" style="border: 1px solid rgba(99, 102, 241, 0.35); background: linear-gradient(145deg, rgba(17, 24, 39, 0.95), rgba(30, 41, 59, 0.85));">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 14px;">
+                <div class="card-title" style="margin-bottom: 0;">⚡ Dynamic Live Attack Telemetry Stream (Simulated I/O)</div>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <button id="btn-stream-play" class="tab-btn active" style="padding: 6px 14px; font-size: 0.75rem;">▶️ Start Attack Stream</button>
+                    <button id="btn-stream-pause" class="tab-btn" style="padding: 6px 14px; font-size: 0.75rem;">⏸️ Pause</button>
+                    <button id="btn-stream-reset" class="tab-btn" style="padding: 6px 14px; font-size: 0.75rem;">🔄 Reset</button>
+                    <select id="stream-speed-select" style="background: rgba(30,41,59,0.9); color: #cbd5e1; border: 1px solid var(--border-subtle); border-radius: 6px; padding: 4px 8px; font-size: 0.75rem;">
+                        <option value="1">Speed: 1x</option>
+                        <option value="2" selected>Speed: 2x</option>
+                        <option value="5">Speed: 5x</option>
+                    </select>
+                </div>
+            </div>
+            <div id="sim-status-banner" style="background: rgba(16, 185, 129, 0.15); border: 1px solid #10b981; border-radius: 8px; padding: 10px 16px; margin-bottom: 14px; text-align: center; font-weight: 700; color: #10b981;">
+                🟢 NORMAL SYSTEM I/O · MONITORING TIME-SERIES WINDOWS (W=2.0s, S=1.0s)
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 14px;">
+                <div style="background: rgba(17,24,39,0.7); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 10px; text-align: center;">
+                    <div style="font-size: 0.68rem; color: var(--text-muted); text-transform: uppercase;">Time Elapsed</div>
+                    <div id="sim-time" style="font-size: 1.3rem; font-weight: 700; font-family: 'JetBrains Mono'; color: #f8fafc;">0.0 s</div>
+                </div>
+                <div style="background: rgba(17,24,39,0.7); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 10px; text-align: center;">
+                    <div style="font-size: 0.68rem; color: var(--text-muted); text-transform: uppercase;">Disk Written</div>
+                    <div id="sim-bytes" style="font-size: 1.3rem; font-weight: 700; font-family: 'JetBrains Mono'; color: #38bdf8;">0.00 MB</div>
+                </div>
+                <div style="background: rgba(17,24,39,0.7); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 10px; text-align: center;">
+                    <div style="font-size: 0.68rem; color: var(--text-muted); text-transform: uppercase;">Entropy (0-1)</div>
+                    <div id="sim-entropy" style="font-size: 1.3rem; font-weight: 700; font-family: 'JetBrains Mono'; color: #f59e0b;">0.34</div>
+                </div>
+                <div style="background: rgba(17,24,39,0.7); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 10px; text-align: center;">
+                    <div style="font-size: 0.68rem; color: var(--text-muted); text-transform: uppercase;">Threat Risk Score</div>
+                    <div id="sim-risk" style="font-size: 1.3rem; font-weight: 700; font-family: 'JetBrains Mono'; color: #10b981;">12.4%</div>
+                </div>
+            </div>
+            <div class="chart-container" style="height: 200px;">
+                <canvas id="chart-live-stream"></canvas>
+            </div>
+        </div>
+
+        <!-- Architecture Filter Pills -->
+        <div style="display: flex; gap: 8px; align-items: center; margin: 20px 0 14px 0; flex-wrap: wrap;">
+            <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Filter Architecture:</span>
+            <button class="tab-btn active model-filter-btn" data-filter="all" style="padding: 6px 14px; font-size: 0.75rem;">All (10)</button>
+            <button class="tab-btn model-filter-btn" data-filter="linear" style="padding: 6px 14px; font-size: 0.75rem;">Linear Models</button>
+            <button class="tab-btn model-filter-btn" data-filter="tree" style="padding: 6px 14px; font-size: 0.75rem;">Tree Boosting / Bagging</button>
+            <button class="tab-btn model-filter-btn" data-filter="neural" style="padding: 6px 14px; font-size: 0.75rem;">Neural & Stacking</button>
+        </div>
 
         <!-- Comparison Table -->
         <div class="card">
@@ -1471,6 +1518,158 @@ PARAMS.forEach(m => {
             <div>${pills}</div>
         </div>
     `;
+});
+
+// ═══════════════════════════════════════════════════════════
+// DYNAMIC LIVE ATTACK TELEMETRY SIMULATION ENGINE
+// ═══════════════════════════════════════════════════════════
+const ctxLive = document.getElementById('chart-live-stream').getContext('2d');
+const liveChart = new Chart(ctxLive, {
+    type: 'line',
+    data: {
+        labels: [0],
+        datasets: [
+            {
+                label: 'Smoothed Risk Score (EWMA alpha=0.3)',
+                data: [0.08],
+                borderColor: '#38bdf8',
+                backgroundColor: 'rgba(56, 189, 248, 0.15)',
+                borderWidth: 2.5,
+                fill: true,
+                tension: 0.35,
+                pointRadius: 2,
+            },
+            {
+                label: 'Operating Threshold (0.50)',
+                data: [0.50],
+                borderColor: '#f59e0b',
+                borderDash: [5, 5],
+                borderWidth: 1.5,
+                pointRadius: 0,
+                fill: false,
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: { duration: 250 },
+        plugins: {
+            legend: { position: 'top', labels: { boxWidth: 12, font: { size: 10 } } }
+        },
+        scales: {
+            y: { min: 0, max: 1.05, ticks: { font: { family: "'JetBrains Mono'" } }, grid: { color: 'rgba(255,255,255,0.05)' } },
+            x: { title: { display: true, text: 'Execution Seconds', color: '#94a3b8' }, grid: { display: false } }
+        }
+    }
+});
+
+let simTimer = null;
+let simT = 0;
+let simBytes = 0;
+let simRunning = false;
+
+function stepSimulation() {
+    simT += 1.0;
+    const isEnc = simT >= 17;
+    const entropy = isEnc ? (0.92 + Math.random() * 0.07) : (0.22 + Math.random() * 0.32);
+    const addedBytes = isEnc ? (Math.random() * 8.5 + 4.2) : (Math.random() * 0.8 + 0.1);
+    simBytes += addedBytes;
+
+    let targetRisk = isEnc ? 0.96 : 0.12;
+    let currentRisk = liveChart.data.datasets[0].data[liveChart.data.datasets[0].data.length - 1];
+    let nextRisk = Math.min(0.99, Math.max(0.05, 0.3 * targetRisk + 0.7 * currentRisk + (Math.random() * 0.04 - 0.02)));
+
+    // Update displays
+    document.getElementById('sim-time').innerText = simT.toFixed(1) + ' s';
+    document.getElementById('sim-bytes').innerText = simBytes.toFixed(2) + ' MB';
+    document.getElementById('sim-entropy').innerText = entropy.toFixed(2);
+    const riskEl = document.getElementById('sim-risk');
+    riskEl.innerText = (nextRisk * 100).toFixed(1) + '%';
+    riskEl.style.color = nextRisk >= 0.5 ? '#ef4444' : '#10b981';
+
+    const banner = document.getElementById('sim-status-banner');
+    if (nextRisk >= 0.5) {
+        banner.style.background = 'rgba(239, 68, 68, 0.2)';
+        banner.style.borderColor = '#ef4444';
+        banner.style.color = '#ef4444';
+        banner.innerHTML = `🚨 THREAT DETECTED: QUARANTINE TRIGGERED @ ${simT.toFixed(1)}s (CONTI RANSOMWARE ENCRYPTION)`;
+    } else {
+        banner.style.background = 'rgba(16, 185, 129, 0.15)';
+        banner.style.borderColor = '#10b981';
+        banner.style.color = '#10b981';
+        banner.innerHTML = `🟢 NORMAL SYSTEM I/O · MONITORING TIME-SERIES WINDOWS (${simT.toFixed(0)}s)`;
+    }
+
+    liveChart.data.labels.push(simT);
+    liveChart.data.datasets[0].data.push(nextRisk);
+    liveChart.data.datasets[1].data.push(0.50);
+    liveChart.update();
+
+    if (simT >= 45) {
+        clearInterval(simTimer);
+        simRunning = false;
+    }
+}
+
+function startSim() {
+    if (simRunning) return;
+    simRunning = true;
+    const speed = parseInt(document.getElementById('stream-speed-select').value) || 2;
+    simTimer = setInterval(stepSimulation, Math.max(100, 700 / speed));
+}
+
+function pauseSim() {
+    clearInterval(simTimer);
+    simRunning = false;
+}
+
+function resetSim() {
+    pauseSim();
+    simT = 0;
+    simBytes = 0;
+    liveChart.data.labels = [0];
+    liveChart.data.datasets[0].data = [0.08];
+    liveChart.data.datasets[1].data = [0.50];
+    liveChart.update();
+    document.getElementById('sim-time').innerText = '0.0 s';
+    document.getElementById('sim-bytes').innerText = '0.00 MB';
+    document.getElementById('sim-entropy').innerText = '0.34';
+    document.getElementById('sim-risk').innerText = '12.4%';
+    document.getElementById('sim-risk').style.color = '#10b981';
+    const banner = document.getElementById('sim-status-banner');
+    banner.style.background = 'rgba(16, 185, 129, 0.15)';
+    banner.style.borderColor = '#10b981';
+    banner.style.color = '#10b981';
+    banner.innerHTML = '🟢 NORMAL SYSTEM I/O · MONITORING TIME-SERIES WINDOWS (W=2.0s, S=1.0s)';
+}
+
+document.getElementById('btn-stream-play').addEventListener('click', startSim);
+document.getElementById('btn-stream-pause').addEventListener('click', pauseSim);
+document.getElementById('btn-stream-reset').addEventListener('click', resetSim);
+
+// ═══════════════════════════════════════════════════════════
+// ARCHITECTURE FILTER BUTTONS
+// ═══════════════════════════════════════════════════════════
+document.querySelectorAll('.model-filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.model-filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const filter = btn.dataset.filter;
+        const rows = document.querySelectorAll('#comparison-table tbody tr');
+        rows.forEach(row => {
+            const name = row.querySelector('.model-name').innerText.toLowerCase();
+            if (filter === 'all') {
+                row.style.display = '';
+            } else if (filter === 'linear') {
+                row.style.display = (name.includes('logistic') || name.includes('svm')) ? '' : 'none';
+            } else if (filter === 'tree') {
+                row.style.display = (name.includes('forest') || name.includes('tree') || name.includes('boost') || name.includes('lgbm')) ? '' : 'none';
+            } else if (filter === 'neural') {
+                row.style.display = (name.includes('mlp') || name.includes('stacking')) ? '' : 'none';
+            }
+        });
+    });
 });
 </script>
 </body>

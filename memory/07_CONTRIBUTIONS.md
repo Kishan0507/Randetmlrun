@@ -27,6 +27,8 @@ Every contribution — code, data, analysis, writing, review, ideas, testing —
 | 2026-10-15 | Kalyani | Antigravity | P-001, T-P5-01..02, T-P5-04, T-P6-01..02 | Audited dropped tasks (D-010); completed API sequence n-grams & ransomware pattern matching (`src/features/sequence.py`), RanSMAP sequential trajectory augmentation & E-051 (+6.31% BalAcc), flow-level network design (`docs/network_features.md`) and extractor (`src/features/network.py`) | `src/features/*`, `scripts/run_sequence_experiments.py`, `tests/test_*.py`, `docs/network_features.md`, `memory/*` |
 | 2026-10-15 | Kalyani | Antigravity | T-P10-01..07 | Phase 10 production extensions: stacking ensemble (`src/models/ensemble.py`), active learning loop (`src/models/active_learning.py`), canary tripwires (`src/features/honeyfile.py`), ransom notes (`src/features/ransom_note.py`), ONNX runtime export (`src/models/onnx_export.py`), `MLRan-ext` spec (`docs/mlran_ext_dataset_spec.md`), and cross-dataset study (`src/eval/cross_dataset.py`, `reports/cross_dataset.md`) | `src/models/*`, `src/features/*`, `src/eval/*`, `docs/*`, `reports/*`, `tests/*` |
 | 2026-10-23 | Karthikey Kadati & Kalyani | Antigravity | P-002 | Model variation analytics frontend (standalone HTML + Streamlit Tab 5), parameter criteria analysis, and dataset organization catalog | `dashboard/analytics.html`, `dashboard/app.py`, `datasets/README.md`, `datasets/dataset_manifest.json`, `scripts/organize_datasets.py`, `memory/*` |
+| 2026-10-23 | Member 1 | Antigravity | P-003 | Real-time dynamic telemetry stream playback, multi-model radar comparator, dynamic ROC/PR tracking, feature keyword filters, and HTML live attack simulation engine | `dashboard/app.py`, `dashboard/analytics.html`, `memory/*` |
+
 
 
 
