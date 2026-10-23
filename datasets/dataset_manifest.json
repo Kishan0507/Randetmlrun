@@ -1,0 +1,178 @@
+{
+  "project": "Early Ransomware Detection with ML + Explainable Dashboard",
+  "description": "Unified Master Dataset Manifest for MLRan and RanSMAP Telemetry",
+  "version": "1.0.0",
+  "data_sources": {
+    "mlran": {
+      "name": "MLRan Behavioral Ransomware Dataset (JNCA 2026)",
+      "upstream": "https://github.com/faithfulco/mlran",
+      "licence": "MIT",
+      "features_count": 483,
+      "train_samples": 3905,
+      "test_samples": 975,
+      "files": [
+        {
+          "filename": "goodware_samples_description.csv",
+          "relative_path": "data/raw/mlran/goodware_samples_description.csv",
+          "size_bytes": 717472,
+          "sha256": "C75D0F56BD490D2FC1E48895A8FA73D9A60802F17D1620D3F08A604D99A0541D",
+          "format": "CSV",
+          "n_rows": 2550,
+          "n_cols": 10,
+          "columns_sample": [
+            "sample_id",
+            "filename",
+            "md5",
+            "title",
+            "description"
+          ]
+        },
+        {
+          "filename": "mlran_dataset_metadata.csv",
+          "relative_path": "data/raw/mlran/mlran_dataset_metadata.csv",
+          "size_bytes": 1292319,
+          "sha256": "0E275F49C2995CC31181D43B7F30E266BE8ECB7E4BF45DCC8BF6CC4CA7637A5A",
+          "format": "CSV",
+          "n_rows": 4880,
+          "n_cols": 19,
+          "columns_sample": [
+            "sample_id",
+            "sha256",
+            "sample_type",
+            "ransomware_family",
+            "family_label"
+          ]
+        },
+        {
+          "filename": "MLRan_labels.csv",
+          "relative_path": "data/raw/mlran/MLRan_labels.csv",
+          "size_bytes": 65056,
+          "sha256": "1E00F2E11E02A34859E8863808422933988C151E8C821A88247798B051227E4F",
+          "format": "CSV",
+          "n_rows": 4880,
+          "n_cols": 4,
+          "columns_sample": [
+            "sample_id",
+            "sample_type",
+            "family_label",
+            "type_label"
+          ]
+        },
+        {
+          "filename": "MLRan_X_test_RFE.csv",
+          "relative_path": "data/raw/mlran/MLRan_X_test_RFE.csv",
+          "size_bytes": 958350,
+          "sha256": "792E7BEA9CCFE8BB056A05BC4751EBF18311C55E548D1B80910214C052EE8E16",
+          "format": "CSV",
+          "n_rows": 975,
+          "n_cols": 487,
+          "columns_sample": [
+            "sample_id",
+            "sample_type",
+            "family_label",
+            "type_label",
+            "5"
+          ]
+        },
+        {
+          "filename": "MLRan_X_train_RFE.csv",
+          "relative_path": "data/raw/mlran/MLRan_X_train_RFE.csv",
+          "size_bytes": 3827789,
+          "sha256": "AAF75D5754AAC247B93E2A7D0BAA449CCB3EACC08117F50DFA0FB422AFF3DB1F",
+          "format": "CSV",
+          "n_rows": 3905,
+          "n_cols": 487,
+          "columns_sample": [
+            "sample_id",
+            "sample_type",
+            "family_label",
+            "type_label",
+            "5"
+          ]
+        },
+        {
+          "filename": "ransomware_samples_families_description.csv",
+          "relative_path": "data/raw/mlran/ransomware_samples_families_description.csv",
+          "size_bytes": 14462,
+          "sha256": "8B79C2FB890843A3FA6D18C8B2957D763ABDCB9D8F76D9FB292734144F0609B0",
+          "format": "CSV",
+          "n_rows": 64,
+          "n_cols": 7,
+          "columns_sample": [
+            "family",
+            "type",
+            "year",
+            "description",
+            "family_label"
+          ]
+        },
+        {
+          "filename": "RFE_selected_feature_names_dic.json",
+          "relative_path": "data/raw/mlran/RFE_selected_feature_names_dic.json",
+          "size_bytes": 29934,
+          "sha256": "2990CF09143C3B8A40D2C6EDC0F794D79B736B06657BB0D5A7F99B7359A1195A",
+          "format": "JSON",
+          "json_keys_count": 483
+        },
+        {
+          "filename": "type_test_sampleids.csv",
+          "relative_path": "data/raw/mlran/type_test_sampleids.csv",
+          "size_bytes": 6836,
+          "sha256": "7250D3EF5E495DB85E3668412FA16FBADA9EC8ACD4ACA6FA395F774A9344FF50",
+          "format": "CSV",
+          "n_rows": 975,
+          "n_cols": 1,
+          "columns_sample": [
+            "sample_id"
+          ]
+        },
+        {
+          "filename": "type_train_sampleids.csv",
+          "relative_path": "data/raw/mlran/type_train_sampleids.csv",
+          "size_bytes": 27346,
+          "sha256": "C897BF35FABC0F16C15FA61A60E55BFA42D7B9D0075D62893FA226F9A80C7120",
+          "format": "CSV",
+          "n_rows": 3905,
+          "n_cols": 1,
+          "columns_sample": [
+            "sample_id"
+          ]
+        }
+      ]
+    },
+    "processed": {
+      "name": "Processed Alert Database and Extension Metadata",
+      "files": [
+        {
+          "filename": "alerts.db",
+          "relative_path": "data/processed/alerts.db",
+          "size_bytes": 12288,
+          "sha256": "8859E4FD954CD6B693A32FCA6EF2E675A3FCA55471600EB3DED3F38C419D8ED0",
+          "format": "DB"
+        },
+        {
+          "filename": "mlran_ext_metadata_schema.json",
+          "relative_path": "data/processed/mlran_ext_metadata_schema.json",
+          "size_bytes": 3397,
+          "sha256": "B458A011021AC039EC6E02133B49400E65001B90DFCC38A160705FB03F173045",
+          "format": "JSON"
+        }
+      ]
+    },
+    "ransmap_specification": {
+      "name": "RanSMAP I/O & Memory Telemetry Dataset",
+      "upstream": "https://github.com/manabu-hirano/RanSMAP",
+      "families_count": 12,
+      "telemetry_channels": [
+        "ata_write",
+        "ata_read",
+        "mem_write",
+        "mem_read"
+      ],
+      "streaming_window": {
+        "size_sec": 2.0,
+        "stride_sec": 1.0
+      }
+    }
+  }
+}

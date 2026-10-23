@@ -1,0 +1,1477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Early Ransomware Detection — Model Comparison Analytics Dashboard. Comprehensive analysis of ML model performance, feature importance, concept drift, and ablation studies on the MLRan dataset.">
+    <title>RansomWatch Analytics — Model Variation & Comparison</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+    <style>
+        :root {
+            --bg-primary: #0a0e1a;
+            --bg-secondary: #111827;
+            --bg-card: rgba(17, 24, 39, 0.85);
+            --bg-card-hover: rgba(30, 41, 59, 0.95);
+            --border-subtle: rgba(255, 255, 255, 0.06);
+            --border-glow: rgba(99, 102, 241, 0.3);
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --accent-indigo: #6366f1;
+            --accent-violet: #8b5cf6;
+            --accent-cyan: #06b6d4;
+            --accent-emerald: #10b981;
+            --accent-amber: #f59e0b;
+            --accent-rose: #f43f5e;
+            --accent-sky: #38bdf8;
+            --accent-fuchsia: #d946ef;
+            --gradient-hero: linear-gradient(135deg, #6366f1 0%, #8b5cf6 35%, #d946ef 100%);
+            --gradient-card: linear-gradient(145deg, rgba(17, 24, 39, 0.9), rgba(30, 41, 59, 0.7));
+            --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 1px rgba(99, 102, 241, 0.1);
+            --shadow-glow: 0 0 40px rgba(99, 102, 241, 0.15);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Animated background grid */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                radial-gradient(circle at 20% 50%, rgba(99, 102, 241, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.04) 0%, transparent 50%),
+                radial-gradient(circle at 50% 80%, rgba(6, 182, 212, 0.03) 0%, transparent 50%);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .container {
+            max-width: 1440px;
+            margin: 0 auto;
+            padding: 0 24px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ─── Hero Header ─── */
+        .hero {
+            padding: 48px 0 32px;
+            text-align: center;
+            position: relative;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 16px;
+            border-radius: 999px;
+            background: rgba(99, 102, 241, 0.12);
+            border: 1px solid rgba(99, 102, 241, 0.25);
+            color: var(--accent-indigo);
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+        }
+
+        .hero h1 {
+            font-size: clamp(2rem, 5vw, 3.2rem);
+            font-weight: 800;
+            background: var(--gradient-hero);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.15;
+            margin-bottom: 12px;
+        }
+
+        .hero p {
+            font-size: 1.05rem;
+            color: var(--text-secondary);
+            max-width: 700px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* ─── KPI Strip ─── */
+        .kpi-strip {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin: 32px 0;
+        }
+
+        .kpi-card {
+            background: var(--gradient-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 16px;
+            padding: 20px 22px;
+            text-align: center;
+            box-shadow: var(--shadow-card);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(12px);
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--border-glow);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .kpi-value {
+            font-size: 1.8rem;
+            font-weight: 800;
+            font-family: 'JetBrains Mono', monospace;
+            line-height: 1.2;
+        }
+
+        .kpi-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-top: 6px;
+        }
+
+        .kpi-sub {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* ─── Tabs ─── */
+        .tabs {
+            display: flex;
+            gap: 4px;
+            margin: 40px 0 24px;
+            background: rgba(17, 24, 39, 0.6);
+            padding: 4px;
+            border-radius: 14px;
+            overflow-x: auto;
+            border: 1px solid var(--border-subtle);
+        }
+
+        .tab-btn {
+            flex: 1;
+            min-width: 130px;
+            padding: 12px 18px;
+            border: none;
+            border-radius: 10px;
+            background: transparent;
+            color: var(--text-secondary);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            white-space: nowrap;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-primary);
+            background: rgba(99, 102, 241, 0.08);
+        }
+
+        .tab-btn.active {
+            background: var(--accent-indigo);
+            color: #fff;
+            box-shadow: 0 4px 16px rgba(99, 102, 241, 0.35);
+        }
+
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; animation: fadeIn 0.4s ease; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ─── Section & Cards ─── */
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title .icon { font-size: 1.3rem; }
+
+        .section-desc {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 24px;
+            line-height: 1.5;
+        }
+
+        .card {
+            background: var(--gradient-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 16px;
+            padding: 28px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow-card);
+            backdrop-filter: blur(12px);
+            transition: border-color 0.3s;
+        }
+
+        .card:hover { border-color: rgba(99, 102, 241, 0.15); }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 24px; }
+        .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; }
+
+        /* ─── Tables ─── */
+        .data-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            font-size: 0.82rem;
+        }
+
+        .data-table thead th {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--accent-indigo);
+            font-weight: 700;
+            padding: 12px 14px;
+            text-align: left;
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            border-bottom: 2px solid rgba(99, 102, 241, 0.15);
+            position: sticky;
+            top: 0;
+        }
+
+        .data-table thead th:first-child { border-radius: 8px 0 0 0; }
+        .data-table thead th:last-child { border-radius: 0 8px 0 0; }
+
+        .data-table tbody td {
+            padding: 11px 14px;
+            border-bottom: 1px solid var(--border-subtle);
+            color: var(--text-secondary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78rem;
+        }
+
+        .data-table tbody tr { transition: background 0.2s; }
+        .data-table tbody tr:hover { background: rgba(99, 102, 241, 0.05); }
+
+        .data-table tbody tr.highlight {
+            background: rgba(99, 102, 241, 0.08);
+        }
+
+        .data-table tbody tr.highlight td { color: var(--text-primary); font-weight: 600; }
+
+        .data-table td.model-name {
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            font-size: 0.82rem;
+        }
+
+        /* Tags */
+        .tag {
+            display: inline-block;
+            padding: 3px 9px;
+            border-radius: 6px;
+            font-size: 0.68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .tag-best { background: rgba(16, 185, 129, 0.15); color: var(--accent-emerald); border: 1px solid rgba(16, 185, 129, 0.25); }
+        .tag-good { background: rgba(56, 189, 248, 0.12); color: var(--accent-sky); border: 1px solid rgba(56, 189, 248, 0.2); }
+        .tag-warn { background: rgba(245, 158, 11, 0.12); color: var(--accent-amber); border: 1px solid rgba(245, 158, 11, 0.2); }
+        .tag-bad { background: rgba(244, 63, 94, 0.12); color: var(--accent-rose); border: 1px solid rgba(244, 63, 94, 0.2); }
+
+        /* Chart containers */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 360px;
+        }
+
+        .chart-container-sm { height: 280px; }
+        .chart-container-lg { height: 440px; }
+
+        /* Insight callout */
+        .insight {
+            display: flex;
+            gap: 12px;
+            padding: 16px 20px;
+            border-radius: 12px;
+            background: rgba(99, 102, 241, 0.06);
+            border-left: 3px solid var(--accent-indigo);
+            margin-top: 16px;
+            font-size: 0.85rem;
+            line-height: 1.55;
+            color: var(--text-secondary);
+        }
+
+        .insight-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+        .insight strong { color: var(--text-primary); }
+
+        /* Parameter pill */
+        .param-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 12px;
+            border-radius: 8px;
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid var(--border-subtle);
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin: 3px 4px 3px 0;
+        }
+
+        .param-pill .param-key {
+            color: var(--accent-cyan);
+            font-weight: 600;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .param-pill .param-val {
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Parameters grid */
+        .params-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+            margin-top: 12px;
+        }
+
+        .param-card {
+            background: rgba(17, 24, 39, 0.7);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 16px 18px;
+            transition: all 0.2s;
+        }
+
+        .param-card:hover { border-color: rgba(99, 102, 241, 0.2); }
+
+        .param-card-name {
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .param-card-name .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        /* Scrollable table wrapper */
+        .table-scroll {
+            overflow-x: auto;
+            border-radius: 12px;
+            border: 1px solid var(--border-subtle);
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 48px 0 32px;
+            color: var(--text-muted);
+            font-size: 0.78rem;
+        }
+
+        .footer a {
+            color: var(--accent-indigo);
+            text-decoration: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .grid-2 { grid-template-columns: 1fr; }
+            .grid-3 { grid-template-columns: 1fr; }
+            .kpi-strip { grid-template-columns: repeat(2, 1fr); }
+            .tabs { flex-wrap: wrap; }
+            .tab-btn { min-width: 100px; font-size: 0.75rem; padding: 10px 12px; }
+        }
+
+        /* Progress bars */
+        .progress-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .progress-label {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            width: 180px;
+            flex-shrink: 0;
+            text-align: right;
+        }
+
+        .progress-track {
+            flex: 1;
+            height: 24px;
+            background: rgba(30, 41, 59, 0.6);
+            border-radius: 6px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 8px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+            color: #fff;
+            transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+            min-width: 45px;
+        }
+
+        /* Confusion matrix visual */
+        .cm-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3px;
+            max-width: 240px;
+            margin: 8px auto;
+        }
+
+        .cm-cell {
+            padding: 14px 8px;
+            text-align: center;
+            border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            font-size: 0.85rem;
+        }
+
+        .cm-tn { background: rgba(16, 185, 129, 0.15); color: var(--accent-emerald); }
+        .cm-fp { background: rgba(245, 158, 11, 0.15); color: var(--accent-amber); }
+        .cm-fn { background: rgba(244, 63, 94, 0.15); color: var(--accent-rose); }
+        .cm-tp { background: rgba(99, 102, 241, 0.2); color: var(--accent-indigo); }
+
+        .cm-label {
+            font-size: 0.6rem;
+            display: block;
+            opacity: 0.7;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 2px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- ═══════════ HERO ═══════════ -->
+    <header class="hero" id="hero">
+        <div class="hero-badge">🛡️ MLRan Dataset · 483 Features · 975 Test Samples</div>
+        <h1>Model Variation & Analytics</h1>
+        <p>Comprehensive comparison of 10 ML classifiers for early ransomware detection. Analysis of parameters, feature importance, concept drift, calibration, and ablation studies.</p>
+    </header>
+
+    <!-- ═══════════ KPI STRIP ═══════════ -->
+    <div class="kpi-strip">
+        <div class="kpi-card">
+            <div class="kpi-value" style="color: var(--accent-emerald);">98.18%</div>
+            <div class="kpi-label">Best Balanced Accuracy</div>
+            <div class="kpi-sub">Logistic Regression (L2)</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-value" style="color: var(--accent-indigo);">10</div>
+            <div class="kpi-label">Models Compared</div>
+            <div class="kpi-sub">Linear, Tree, Ensemble, Neural</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-value" style="color: var(--accent-cyan);">483</div>
+            <div class="kpi-label">RFE Features</div>
+            <div class="kpi-sub">API · String · Signature</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-value" style="color: var(--accent-amber);">3,905</div>
+            <div class="kpi-label">Train Samples</div>
+            <div class="kpi-sub">Goodware + Ransomware</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-value" style="color: var(--accent-violet);">0.014ms</div>
+            <div class="kpi-label">Best Inference</div>
+            <div class="kpi-sub">Per-sample latency</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-value" style="color: var(--accent-rose);">97.95%</div>
+            <div class="kpi-label">Zero-Day Detection</div>
+            <div class="kpi-sub">LOFO avg catch rate</div>
+        </div>
+    </div>
+
+    <!-- ═══════════ TABS ═══════════ -->
+    <nav class="tabs" id="main-tabs">
+        <button class="tab-btn active" data-tab="tab-comparison" id="tab-btn-comparison">📊 Model Comparison</button>
+        <button class="tab-btn" data-tab="tab-params" id="tab-btn-params">⚙️ Parameters</button>
+        <button class="tab-btn" data-tab="tab-features" id="tab-btn-features">🔬 Feature Importance</button>
+        <button class="tab-btn" data-tab="tab-drift" id="tab-btn-drift">📈 Concept Drift</button>
+        <button class="tab-btn" data-tab="tab-ablation" id="tab-btn-ablation">🧪 Ablation Study</button>
+        <button class="tab-btn" data-tab="tab-dataset" id="tab-btn-dataset">📁 Dataset Overview</button>
+    </nav>
+
+    <!-- ═══════════ TAB 1: MODEL COMPARISON ═══════════ -->
+    <div class="tab-panel active" id="tab-comparison">
+        <h2 class="section-title"><span class="icon">📊</span> Model Performance Comparison</h2>
+        <p class="section-desc">Test-set evaluation of 10 classifiers. Model selection was done via expanding-window chronological CV on training data only — the test column is a one-shot unbiased report.</p>
+
+        <!-- Comparison Table -->
+        <div class="card">
+            <div class="card-title">🏆 Full Comparison Table (Test Set — 975 Samples)</div>
+            <div class="table-scroll">
+                <table class="data-table" id="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Model</th>
+                            <th>CV BalAcc</th>
+                            <th>Test BalAcc</th>
+                            <th>95% CI</th>
+                            <th>Macro-F1</th>
+                            <th>FPR</th>
+                            <th>FNR</th>
+                            <th>Train (s)</th>
+                            <th>Latency</th>
+                            <th>Size</th>
+                            <th>Rank</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="highlight">
+                            <td class="model-name">Logistic Regression (L2)</td>
+                            <td>96.33%</td><td>98.18%</td><td>[97.25%, 98.98%]</td><td>98.15%</td>
+                            <td>2.35%</td><td>1.29%</td><td>0.17</td><td>0.014 ms</td><td>9.2 KB</td>
+                            <td><span class="tag tag-best">🥇 #1</span></td>
+                        </tr>
+                        <tr>
+                            <td class="model-name">Logistic Regression (L1)</td>
+                            <td>93.72%</td><td>97.58%</td><td>[96.52%, 98.50%]</td><td>97.54%</td>
+                            <td>3.33%</td><td>1.51%</td><td>0.08</td><td>0.008 ms</td><td>9.2 KB</td>
+                            <td><span class="tag tag-good">#2</span></td>
+                        </tr>
+                        <tr>
+                            <td class="model-name">Logistic Regression (Elastic)</td>
+                            <td>93.29%</td><td>97.38%</td><td>[96.30%, 98.32%]</td><td>97.34%</td>
+                            <td>3.53%</td><td>1.72%</td><td>0.45</td><td>0.010 ms</td><td>9.2 KB</td>
+                            <td><span class="tag tag-good">#3</span></td>
+                        </tr>
+                        <tr>
+                            <td class="model-name">LightGBM (n=100, lr=0.1)</td>
+                            <td>94.82%</td><td>97.48%</td><td>[96.34%, 98.43%]</td><td>97.43%</td>
+                            <td>3.53%</td><td>1.51%</td><td>0.29</td><td>0.016 ms</td><td>362.7 KB</td>
+                            <td><span class="tag tag-good">#4</span></td>
+                        </tr>
+                        <tr>
+                            <td class="model-name">Extra Trees (n=100, depth=20)</td>
+                            <td>95.81%</td><td>97.18%</td><td>[96.08%, 98.16%]</td><td>97.12%</td>
+                            <td>3.92%</td><td>1.72%</td><td>0.38</td><td>0.033 ms</td><td>2589 KB</td>
+                            <td><span class="tag tag-good">#5</span></td>
+                        </tr>
+                        <tr>
+                            <td class="model-name">Linear SVM (LinearSVC)</td>
+                            <td>96.20%</td><td>97.10%</td><td>[95.99%, 98.14%]</td><td>97.12%</td>
+                            <td>2.35%</td><td>3.44%</td><td>0.07</td><td>0.007 ms</td><td>9.1 KB</td>
+                            <td><span class="tag tag-good">#6</span></td>
+                        </tr>
+                        <tr>
+                            <td class="model-name">Random Forest (n=100, depth=20)</td>
+                            <td>95.81%</td><td>97.07%</td><td>[95.92%, 98.05%]</td><td>97.02%</td>
+                            <td>3.92%</td><td>1.94%</td><td>0.32</td><td>0.033 ms</td><td>2008 KB</td>
+                            <td><span class="tag tag-good">#7</span></td>
+                        </tr>
+                        <tr>
+                            <td class="model-name">XGBoost (n=100, lr=0.1)</td>
+                            <td>93.29%</td><td>96.99%</td><td>[95.89%, 98.00%]</td><td>96.92%</td>
+                            <td>4.51%</td><td>1.51%</td><td>0.95</td><td>0.110 ms</td><td>193.3 KB</td>
+                            <td><span class="tag tag-warn">#8</span></td>
+                        </tr>
+                        <tr>
+                            <td class="model-name">MLP (64 hidden, sklearn)</td>
+                            <td>94.50%</td><td>96.82%</td><td>[95.68%, 97.85%]</td><td>96.75%</td>
+                            <td>4.31%</td><td>2.15%</td><td>2.10</td><td>0.045 ms</td><td>740 KB</td>
+                            <td><span class="tag tag-warn">#9</span></td>
+                        </tr>
+                        <tr>
+                            <td class="model-name">Decision Tree (max_depth=15)</td>
+                            <td>91.29%</td><td>94.18%</td><td>[92.70%, 95.62%]</td><td>94.24%</td>
+                            <td>4.12%</td><td>7.53%</td><td>0.19</td><td>0.007 ms</td><td>17.6 KB</td>
+                            <td><span class="tag tag-bad">#10</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="grid-2">
+            <div class="card">
+                <div class="card-title">📊 Balanced Accuracy Comparison</div>
+                <div class="chart-container">
+                    <canvas id="chart-bal-acc"></canvas>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">⚡ Efficiency: Accuracy vs Model Size</div>
+                <div class="chart-container">
+                    <canvas id="chart-efficiency"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid-2">
+            <div class="card">
+                <div class="card-title">🎯 Error Rates (FPR vs FNR)</div>
+                <div class="chart-container">
+                    <canvas id="chart-errors"></canvas>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">🔲 Confusion Matrix — Best Model (LR-L2)</div>
+                <div style="display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 20px 0;">
+                    <div style="display: grid; grid-template-columns: 60px 1fr 1fr; grid-template-rows: 40px 1fr 1fr; gap: 3px; width: 320px;">
+                        <div></div>
+                        <div style="text-align: center; font-size: 0.7rem; color: var(--text-muted); font-weight: 600; align-self: end;">Predicted<br>Goodware</div>
+                        <div style="text-align: center; font-size: 0.7rem; color: var(--text-muted); font-weight: 600; align-self: end;">Predicted<br>Ransomware</div>
+                        <div style="writing-mode: vertical-lr; transform: rotate(180deg); text-align: center; font-size: 0.7rem; color: var(--text-muted); font-weight: 600;">Actual Goodware</div>
+                        <div class="cm-cell cm-tn"><span class="cm-label">TN</span>498</div>
+                        <div class="cm-cell cm-fp"><span class="cm-label">FP</span>12</div>
+                        <div style="writing-mode: vertical-lr; transform: rotate(180deg); text-align: center; font-size: 0.7rem; color: var(--text-muted); font-weight: 600;">Actual Ransomware</div>
+                        <div class="cm-cell cm-fn"><span class="cm-label">FN</span>6</div>
+                        <div class="cm-cell cm-tp"><span class="cm-label">TP</span>459</div>
+                    </div>
+                    <div style="font-size: 0.78rem; color: var(--text-secondary); text-align: center;">
+                        Accuracy: <strong style="color: var(--accent-emerald);">98.15%</strong> · Precision: <strong>97.45%</strong> · Recall: <strong>98.71%</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="insight">
+            <span class="insight-icon">💡</span>
+            <div>
+                <strong>Key Finding:</strong> Regularized linear models (LR-L2, LR-L1, Linear SVM) dominate on the 483-feature sparse binary dataset. 
+                Logistic Regression (L2) achieves the highest test balanced accuracy at <strong>98.18%</strong> with only <strong>9.2 KB</strong> footprint and 
+                <strong>0.014 ms</strong> inference latency — orders of magnitude smaller and faster than tree ensembles (RF: 2008 KB, ET: 2589 KB) 
+                while delivering superior accuracy. Decision Tree collapses under temporal validation (-6.39% BalAcc from #1).
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════ TAB 2: PARAMETERS ═══════════ -->
+    <div class="tab-panel" id="tab-params">
+        <h2 class="section-title"><span class="icon">⚙️</span> Model Parameters & Hyperparameters</h2>
+        <p class="section-desc">Detailed configuration of each classifier. These hyperparameters were selected via expanding-window chronological cross-validation on the training data only.</p>
+
+        <div class="params-grid" id="params-grid">
+            <!-- Filled by JS -->
+        </div>
+
+        <div class="card" style="margin-top: 24px;">
+            <div class="card-title">📋 Evaluation Protocol & Criteria</div>
+            <div class="grid-3">
+                <div>
+                    <h4 style="color: var(--accent-indigo); font-size: 0.85rem; margin-bottom: 8px;">Primary Metrics</h4>
+                    <ul style="font-size: 0.82rem; color: var(--text-secondary); line-height: 1.7; padding-left: 18px;">
+                        <li><strong style="color: var(--text-primary);">Balanced Accuracy</strong> — primary selection metric</li>
+                        <li><strong style="color: var(--text-primary);">Macro-F1</strong> — class-balanced harmonic mean</li>
+                        <li><strong style="color: var(--text-primary);">FPR / FNR</strong> — operational error rates</li>
+                        <li><strong style="color: var(--text-primary);">ROC-AUC / PR-AUC</strong> — ranking quality</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 style="color: var(--accent-cyan); font-size: 0.85rem; margin-bottom: 8px;">Validation Protocol</h4>
+                    <ul style="font-size: 0.82rem; color: var(--text-secondary); line-height: 1.7; padding-left: 18px;">
+                        <li>Expanding-window temporal CV (3 folds)</li>
+                        <li>Chronological validation slice (20%)</li>
+                        <li>Test set: one-shot final evaluation</li>
+                        <li>Bootstrap 95% CI (1,000 resamples)</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 style="color: var(--accent-emerald); font-size: 0.85rem; margin-bottom: 8px;">Operational Constraints</h4>
+                    <ul style="font-size: 0.82rem; color: var(--text-secondary); line-height: 1.7; padding-left: 18px;">
+                        <li>FPR budget: ≤ 1% (SOC alert fatigue)</li>
+                        <li>Seed: 42 (reproducibility)</li>
+                        <li>CPU-only inference (no GPU)</li>
+                        <li>Temporal discipline enforced</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════ TAB 3: FEATURE IMPORTANCE ═══════════ -->
+    <div class="tab-panel" id="tab-features">
+        <h2 class="section-title"><span class="icon">🔬</span> Feature Importance Analysis</h2>
+        <p class="section-desc">Top discriminative features for ransomware detection. The MLRan dataset uses 483 binary features across API calls, string patterns, and PE signatures extracted from Cuckoo sandbox reports.</p>
+
+        <div class="grid-2">
+            <div class="card">
+                <div class="card-title">🏆 Top 15 Features — Logistic Regression (|coefficient|)</div>
+                <div class="chart-container chart-container-lg">
+                    <canvas id="chart-features-lr"></canvas>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">🌳 Top 15 Features — LightGBM (split importance)</div>
+                <div class="chart-container chart-container-lg">
+                    <canvas id="chart-features-lgb"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">🎯 Feature Category Distribution (483 RFE Features)</div>
+            <div class="grid-2">
+                <div class="chart-container chart-container-sm">
+                    <canvas id="chart-feat-cat"></canvas>
+                </div>
+                <div style="padding: 20px 0;">
+                    <h4 style="color: var(--text-primary); font-size: 0.9rem; margin-bottom: 12px;">Feature Categories Explained</h4>
+                    <div style="font-size: 0.82rem; color: var(--text-secondary); line-height: 1.8;">
+                        <div style="margin-bottom: 8px;"><strong style="color: var(--accent-indigo);">API Calls (312):</strong> Dynamic function call traces from Cuckoo sandbox — <code style="font-size: 0.75rem; background: rgba(99,102,241,.1); padding: 2px 6px; border-radius: 4px;">NtProtectVirtualMemory</code>, <code style="font-size: 0.75rem; background: rgba(99,102,241,.1); padding: 2px 6px; border-radius: 4px;">LdrGetProcedureAddress</code></div>
+                        <div style="margin-bottom: 8px;"><strong style="color: var(--accent-cyan);">String Patterns (108):</strong> Static PE string extraction — <code style="font-size: 0.75rem; background: rgba(6,182,212,.1); padding: 2px 6px; border-radius: 4px;">!this program cannot be run in dos mode</code></div>
+                        <div style="margin-bottom: 8px;"><strong style="color: var(--accent-amber);">PE Signatures (63):</strong> Packer/entropy signatures — <code style="font-size: 0.75rem; background: rgba(245,158,11,.1); padding: 2px 6px; border-radius: 4px;">packer_entropy</code>, <code style="font-size: 0.75rem; background: rgba(245,158,11,.1); padding: 2px 6px; border-radius: 4px;">pe_section_*</code></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="insight">
+            <span class="insight-icon">⚠️</span>
+            <div>
+                <strong>False Positive Root Cause:</strong> The feature <code style="background: rgba(244,63,94,.1); padding: 2px 6px; border-radius: 4px;">STRING:!this program cannot be run in dos mode</code> has the <strong>highest positive LR coefficient (+2.599)</strong> and fires in <strong>100% of false positives</strong>. Modern 2023–24 software (Zoom, VALORANT, CyberGhost) are single-PE executables containing this standard DOS stub. The model learned a static compilation artifact, not malicious behaviour.
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════ TAB 4: DRIFT ═══════════ -->
+    <div class="tab-panel" id="tab-drift">
+        <h2 class="section-title"><span class="icon">📈</span> Concept Drift & Temporal Analysis</h2>
+        <p class="section-desc">Performance stratified by first-submission year reveals monotonic FPR inflation as goodware evolves away from the training distribution.</p>
+
+        <div class="grid-2">
+            <div class="card">
+                <div class="card-title">📉 Balanced Accuracy by Year</div>
+                <div class="chart-container">
+                    <canvas id="chart-drift-acc"></canvas>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">📊 FPR & FNR by Year</div>
+                <div class="chart-container">
+                    <canvas id="chart-drift-errors"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">📋 Per-Year Breakdown</div>
+            <div class="table-scroll">
+                <table class="data-table">
+                    <thead>
+                        <tr><th>Year</th><th>Total</th><th>Goodware</th><th>Ransomware</th><th>FP</th><th>FN</th><th>FPR</th><th>FNR</th><th>BalAcc</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>2021</td><td>244</td><td>26</td><td>218</td><td>0</td><td>4</td><td>0.00%</td><td>1.83%</td><td style="color: var(--accent-emerald);">99.08%</td></tr>
+                        <tr><td>2022</td><td>128</td><td>71</td><td>57</td><td>1</td><td>0</td><td>1.41%</td><td>0.00%</td><td style="color: var(--accent-emerald);">99.30%</td></tr>
+                        <tr><td>2023</td><td>340</td><td>182</td><td>158</td><td>4</td><td>1</td><td>2.20%</td><td>0.63%</td><td style="color: var(--accent-sky);">98.58%</td></tr>
+                        <tr><td>2024</td><td>263</td><td>231</td><td>32</td><td>7</td><td>1</td><td style="color: var(--accent-rose);">3.03%</td><td>3.12%</td><td style="color: var(--accent-amber);">96.92%</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">🛡️ Drift Mitigation Strategies</div>
+            <div class="table-scroll">
+                <table class="data-table">
+                    <thead>
+                        <tr><th>Strategy</th><th>Overall BalAcc</th><th>Overall FPR</th><th>2023–24 FPR</th><th>Overall FNR</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr class="highlight"><td class="model-name">Baseline (LR, C=1.0)</td><td>98.18%</td><td>2.35% (12/510)</td><td>2.66% (11/413)</td><td>1.29% (6/465)</td></tr>
+                        <tr><td class="model-name">Cost-Sensitive Loss (CW=2.0)</td><td>97.95%</td><td>2.16% (11/510)</td><td>2.42% (10/413)</td><td>1.94% (9/465)</td></tr>
+                        <tr><td class="model-name">Calibrated Threshold (t=0.90)</td><td>95.85%</td><td style="color: var(--accent-emerald);">0.98% (5/510)</td><td style="color: var(--accent-emerald);">1.21%</td><td style="color: var(--accent-rose);">7.31%</td></tr>
+                        <tr><td class="model-name">Cost-Weight CW=1.5</td><td style="color: var(--accent-emerald);">98.28%</td><td>2.16%</td><td>2.42%</td><td>1.29%</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="insight">
+            <span class="insight-icon">📊</span>
+            <div>
+                <strong>Area Under Time (AUT):</strong> AUT<sub>BalAcc</sub> = <strong>0.9863</strong> (98.63%). FPR inflates monotonically from <strong>0.00%</strong> (2021) → <strong>3.03%</strong> (2024). 
+                The <strong>calibrated operating point (t=0.90)</strong> cuts 2023–24 FPs by 63.6% but trades 6% recall — a critical cost-benefit tradeoff for SOC deployment.
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════ TAB 5: ABLATION ═══════════ -->
+    <div class="tab-panel" id="tab-ablation">
+        <h2 class="section-title"><span class="icon">🧪</span> Ablation Study</h2>
+        <p class="section-desc">Systematic on/off analysis of each architectural component, including honest negative results and operational tradeoffs.</p>
+
+        <div class="card">
+            <div class="card-title">📋 Master Ablation Table</div>
+            <div class="table-scroll">
+                <table class="data-table" style="font-size: 0.76rem;">
+                    <thead>
+                        <tr><th>Component</th><th>Variation</th><th>BalAcc</th><th>Recall</th><th>FPR</th><th>Benefit</th><th>Limitation</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr class="highlight">
+                            <td class="model-name">Baseline</td><td>Paper LR (L2)</td><td>98.18%</td><td>98.71%</td><td>2.35%</td>
+                            <td style="font-family: 'Inter',sans-serif; font-size: 0.74rem;">Strong reproducible baseline; 9.2 KB</td>
+                            <td style="font-family: 'Inter',sans-serif; font-size: 0.74rem; color: var(--accent-rose);">Vulnerable to installer drift</td>
+                        </tr>
+                        <tr>
+                            <td class="model-name">Calibration</td><td>OFF: Raw Logit</td><td>98.18%</td><td>98.71%</td><td>2.35%</td>
+                            <td style="font-family: 'Inter',sans-serif; font-size: 0.74rem;">Simple uncalibrated outputs</td>
+                            <td style="font-family: 'Inter',sans-serif; font-size: 0.74rem; color: var(--accent-rose);">ECE = 0.0482 (overconfident)</td>
+                        </tr>
+                        <tr style="background: rgba(16,185,129,.04);">
+                            <td class="model-name">Calibration</td><td>ON: Platt Scaling</td><td>98.18%</td><td>98.71%</td><td>2.35%</td>
+                            <td style="font-family: 'Inter',sans-serif; font-size: 0.74rem; color: var(--accent-emerald);">ECE → 0.0142 (−70.5%)</td>
+                            <td style="font-family: 'Inter',sans-serif; font-size: 0.74rem;">Needs validation slice</td>
+                        </tr>
+                        <tr>
+                            <td class="model-name">Threshold</td><td>Standard (0.50)</td><td>98.18%</td><td>98.71%</td><td>2.35%</td>
+                            <td style="font-family: 'Inter',sans-serif; font-size: 0.74rem;">Balanced operational point</td>
+                            <td style="font-family: 'Inter',sans-serif; font-size: 0.74rem; color: var(--accent-rose);">Exceeds 1% FPR budget</td>
+                        </tr>
+                        <tr>
+                            <td class="model-name">Threshold</td><td>Budget (0.90)</td><td>95.85%</td><td>92.69%</td><td style="color: var(--accent-emerald);">0.98%</td>
+                            <td style="font-family: 'Inter',sans-serif; font-size: 0.74rem; color: var(--accent-emerald);">&lt;1% FPR guaranteed</td>
+                            <td style="font-family: 'Inter',sans-serif; font-size: 0.74rem; color: var(--accent-rose);">Recall drops 6.02%!</td>
+                        </tr>
+                        <tr>
+                            <td class="model-name">Drift</td><td>CW=1.5 (moderate)</td><td style="color: var(--accent-emerald);">98.28%</td><td>98.71%</td><td>2.16%</td>
+                            <td style="font-family: 'Inter',sans-serif; font-size: 0.74rem; color: var(--accent-emerald);">Best BalAcc (+0.10%)</td>
+                            <td style="font-family: 'Inter',sans-serif; font-size: 0.74rem;">Slight confidence margin loss</td>
+                        </tr>
+                        <tr>
+                            <td class="model-name">Streaming</td><td>EWMA α=0.2, θ=0.7</td><td>—</td><td>100%</td><td style="color: var(--accent-emerald);">0.0%</td>
+                            <td style="font-family: 'Inter',sans-serif; font-size: 0.74rem; color: var(--accent-emerald);">0 false alarms; 21s TTD</td>
+                            <td style="font-family: 'Inter',sans-serif; font-size: 0.74rem;">+3s latency vs raw voting</td>
+                        </tr>
+                        <tr>
+                            <td class="model-name">Adversarial</td><td>OFF: Clean Train</td><td>98.18%</td><td>98.71%</td><td>2.35%</td>
+                            <td style="font-family: 'Inter',sans-serif; font-size: 0.74rem;">Max clean accuracy</td>
+                            <td style="font-family: 'Inter',sans-serif; font-size: 0.74rem; color: var(--accent-rose);">96.3% evasion at budget 5</td>
+                        </tr>
+                        <tr style="background: rgba(16,185,129,.04);">
+                            <td class="model-name">Adversarial</td><td>ON: Adversarial Augment</td><td>97.22%</td><td>97.63%</td><td>3.14%</td>
+                            <td style="font-family: 'Inter',sans-serif; font-size: 0.74rem; color: var(--accent-emerald);">Evasion → 54% (+42.4% defense)</td>
+                            <td style="font-family: 'Inter',sans-serif; font-size: 0.74rem; color: var(--accent-rose);">Clean accuracy −0.96%</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="grid-2">
+            <div class="card">
+                <div class="card-title">📊 Component Impact on Balanced Accuracy</div>
+                <div class="chart-container">
+                    <canvas id="chart-ablation"></canvas>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">🔄 Accuracy–FPR Tradeoff Curve</div>
+                <div class="chart-container">
+                    <canvas id="chart-tradeoff"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════ TAB 6: DATASET ═══════════ -->
+    <div class="tab-panel" id="tab-dataset">
+        <h2 class="section-title"><span class="icon">📁</span> Dataset Overview</h2>
+        <p class="section-desc">The MLRan dataset (Onwuegbuche et al., JNCA 2026) provides 483 RFE-selected binary features extracted from Cuckoo sandbox analysis reports of ransomware and goodware samples.</p>
+
+        <div class="grid-2">
+            <div class="card">
+                <div class="card-title">📊 Train/Test Split</div>
+                <div class="chart-container chart-container-sm">
+                    <canvas id="chart-split"></canvas>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">📅 Samples by Year</div>
+                <div class="chart-container chart-container-sm">
+                    <canvas id="chart-year-dist"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">📂 Dataset File Organization</div>
+            <div class="table-scroll">
+                <table class="data-table">
+                    <thead>
+                        <tr><th>File</th><th>Location</th><th>Size</th><th>Description</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="model-name">MLRan_X_train_RFE.csv</td><td style="font-family: 'JetBrains Mono', monospace;">data/raw/mlran/</td><td>3.65 MB</td><td style="font-family: 'Inter',sans-serif;">Training features (3,905 × 483)</td></tr>
+                        <tr><td class="model-name">MLRan_X_test_RFE.csv</td><td style="font-family: 'JetBrains Mono', monospace;">data/raw/mlran/</td><td>0.91 MB</td><td style="font-family: 'Inter',sans-serif;">Test features (975 × 483)</td></tr>
+                        <tr><td class="model-name">MLRan_labels.csv</td><td style="font-family: 'JetBrains Mono', monospace;">data/raw/mlran/</td><td>63.5 KB</td><td style="font-family: 'Inter',sans-serif;">Binary, type, and family labels</td></tr>
+                        <tr><td class="model-name">mlran_dataset_metadata.csv</td><td style="font-family: 'JetBrains Mono', monospace;">data/raw/mlran/</td><td>1.23 MB</td><td style="font-family: 'Inter',sans-serif;">Sample metadata with timestamps</td></tr>
+                        <tr><td class="model-name">RFE_selected_feature_names_dic.json</td><td style="font-family: 'JetBrains Mono', monospace;">data/raw/mlran/</td><td>29.2 KB</td><td style="font-family: 'Inter',sans-serif;">Column index → feature name map</td></tr>
+                        <tr><td class="model-name">goodware_samples_description.csv</td><td style="font-family: 'JetBrains Mono', monospace;">data/raw/mlran/</td><td>700 KB</td><td style="font-family: 'Inter',sans-serif;">Goodware metadata & software titles</td></tr>
+                        <tr><td class="model-name">ransomware_samples_families_description.csv</td><td style="font-family: 'JetBrains Mono', monospace;">data/raw/mlran/</td><td>14.1 KB</td><td style="font-family: 'Inter',sans-serif;">Ransomware family descriptions</td></tr>
+                        <tr><td class="model-name">type_train/test_sampleids.csv</td><td style="font-family: 'JetBrains Mono', monospace;">data/raw/mlran/</td><td>33.4 KB</td><td style="font-family: 'Inter',sans-serif;">Pre-defined train/test sample IDs</td></tr>
+                        <tr><td class="model-name">alerts.db</td><td style="font-family: 'JetBrains Mono', monospace;">data/processed/</td><td>12 KB</td><td style="font-family: 'Inter',sans-serif;">SQLite alert database</td></tr>
+                        <tr><td class="model-name">mlran_ext_metadata_schema.json</td><td style="font-family: 'JetBrains Mono', monospace;">data/processed/</td><td>3.3 KB</td><td style="font-family: 'Inter',sans-serif;">Extended metadata JSON schema</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">🏷️ Top Ransomware Families (Training Set)</div>
+            <div class="chart-container">
+                <canvas id="chart-families"></canvas>
+            </div>
+        </div>
+
+        <div class="insight">
+            <span class="insight-icon">📝</span>
+            <div>
+                <strong>Data Provenance:</strong> All data sourced from <a href="https://github.com/faithfulco/mlran" style="color: var(--accent-indigo);">faithfulco/mlran</a> (MIT license). 
+                The full 6.4M-feature MLRan dataset is not yet public — only the 483-feature RFE subset is available. 
+                All file hashes are verified and documented in <code style="background: rgba(99,102,241,.1); padding: 2px 6px; border-radius: 4px;">data/README.md</code>.
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>RansomWatch Analytics Dashboard · Built on <a href="https://github.com/faithfulco/mlran">MLRan Dataset</a> · Team Project 2026</p>
+        <p style="margin-top: 6px;">Logistic Regression (L2) • 98.18% Balanced Accuracy • 0.014ms Inference • 9.2 KB Model</p>
+    </footer>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// TAB SWITCHING
+// ═══════════════════════════════════════════════════════════
+document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById(btn.dataset.tab).classList.add('active');
+    });
+});
+
+// ═══════════════════════════════════════════════════════════
+// CHART DEFAULTS
+// ═══════════════════════════════════════════════════════════
+Chart.defaults.color = '#94a3b8';
+Chart.defaults.borderColor = 'rgba(255,255,255,0.04)';
+Chart.defaults.font.family = "'Inter', sans-serif";
+
+const MODEL_COLORS = [
+    '#6366f1', '#8b5cf6', '#d946ef', '#06b6d4', '#10b981',
+    '#38bdf8', '#f59e0b', '#f43f5e', '#a855f7', '#ec4899'
+];
+
+const MODELS = [
+    'LR (L2)', 'LR (L1)', 'LR (Elastic)', 'LightGBM', 'Extra Trees',
+    'Linear SVM', 'Random Forest', 'XGBoost', 'MLP', 'Decision Tree'
+];
+
+const TEST_BALACC = [98.18, 97.58, 97.38, 97.48, 97.18, 97.10, 97.07, 96.99, 96.82, 94.18];
+const CV_BALACC = [96.33, 93.72, 93.29, 94.82, 95.81, 96.20, 95.81, 93.29, 94.50, 91.29];
+const FPR_VALS = [2.35, 3.33, 3.53, 3.53, 3.92, 2.35, 3.92, 4.51, 4.31, 4.12];
+const FNR_VALS = [1.29, 1.51, 1.72, 1.51, 1.72, 3.44, 1.94, 1.51, 2.15, 7.53];
+const SIZES_KB = [9.2, 9.2, 9.2, 362.7, 2589, 9.1, 2008, 193.3, 740, 17.6];
+
+// ═══════════════════════════════════════════════════════════
+// CHART 1: Balanced Accuracy Bar Chart
+// ═══════════════════════════════════════════════════════════
+new Chart(document.getElementById('chart-bal-acc'), {
+    type: 'bar',
+    data: {
+        labels: MODELS,
+        datasets: [
+            {
+                label: 'Test BalAcc (%)',
+                data: TEST_BALACC,
+                backgroundColor: MODEL_COLORS.map(c => c + '99'),
+                borderColor: MODEL_COLORS,
+                borderWidth: 2,
+                borderRadius: 6,
+            },
+            {
+                label: 'CV BalAcc (%)',
+                data: CV_BALACC,
+                backgroundColor: MODEL_COLORS.map(c => c + '33'),
+                borderColor: MODEL_COLORS.map(c => c + '77'),
+                borderWidth: 1,
+                borderRadius: 6,
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { position: 'top', labels: { padding: 16, usePointStyle: true, pointStyleWidth: 10 } },
+            tooltip: { backgroundColor: 'rgba(17,24,39,0.95)', titleFont: { weight: '600' }, padding: 12, cornerRadius: 8 }
+        },
+        scales: {
+            y: { min: 88, max: 100, ticks: { callback: v => v + '%', font: { family: "'JetBrains Mono'" } }, grid: { color: 'rgba(255,255,255,0.03)' } },
+            x: { ticks: { font: { size: 10 } }, grid: { display: false } }
+        }
+    }
+});
+
+// ═══════════════════════════════════════════════════════════
+// CHART 2: Efficiency Bubble
+// ═══════════════════════════════════════════════════════════
+new Chart(document.getElementById('chart-efficiency'), {
+    type: 'bubble',
+    data: {
+        datasets: MODELS.map((name, i) => ({
+            label: name,
+            data: [{ x: Math.log10(SIZES_KB[i] + 1), y: TEST_BALACC[i], r: Math.max(6, Math.sqrt(SIZES_KB[i]) / 3) }],
+            backgroundColor: MODEL_COLORS[i] + '88',
+            borderColor: MODEL_COLORS[i],
+            borderWidth: 2,
+        }))
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                callbacks: {
+                    label: ctx => `${ctx.dataset.label}: ${ctx.raw.y}% BalAcc, ${SIZES_KB[ctx.datasetIndex]} KB`,
+                },
+                backgroundColor: 'rgba(17,24,39,0.95)', padding: 12, cornerRadius: 8
+            }
+        },
+        scales: {
+            x: { title: { display: true, text: 'Model Size (log₁₀ KB)', font: { size: 11 } }, ticks: { callback: v => Math.round(Math.pow(10, v)) + ' KB', font: { family: "'JetBrains Mono'" } }, grid: { color: 'rgba(255,255,255,0.03)' } },
+            y: { min: 93, max: 99, title: { display: true, text: 'Balanced Accuracy (%)', font: { size: 11 } }, ticks: { callback: v => v + '%', font: { family: "'JetBrains Mono'" } }, grid: { color: 'rgba(255,255,255,0.03)' } }
+        }
+    }
+});
+
+// ═══════════════════════════════════════════════════════════
+// CHART 3: Error Rates
+// ═══════════════════════════════════════════════════════════
+new Chart(document.getElementById('chart-errors'), {
+    type: 'bar',
+    data: {
+        labels: MODELS,
+        datasets: [
+            { label: 'FPR (%)', data: FPR_VALS, backgroundColor: 'rgba(245, 158, 11, 0.6)', borderColor: '#f59e0b', borderWidth: 1, borderRadius: 4 },
+            { label: 'FNR (%)', data: FNR_VALS, backgroundColor: 'rgba(244, 63, 94, 0.6)', borderColor: '#f43f5e', borderWidth: 1, borderRadius: 4 }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { position: 'top', labels: { padding: 16, usePointStyle: true } },
+            tooltip: { backgroundColor: 'rgba(17,24,39,0.95)', padding: 12, cornerRadius: 8 }
+        },
+        scales: {
+            y: { min: 0, max: 10, ticks: { callback: v => v + '%', font: { family: "'JetBrains Mono'" } }, grid: { color: 'rgba(255,255,255,0.03)' } },
+            x: { ticks: { font: { size: 10 } }, grid: { display: false } }
+        }
+    }
+});
+
+// ═══════════════════════════════════════════════════════════
+// FEATURE IMPORTANCE CHARTS
+// ═══════════════════════════════════════════════════════════
+const LR_FEATURES = [
+    ['STRING:!this program cannot...', 2.599],
+    ['API:LdrGetProcedureAddress', 1.710],
+    ['API:NtAllocateVirtualMemory', 1.340],
+    ['SIGNATURE:packer_entropy', 1.280],
+    ['API:NtProtectVirtualMemory', 1.180],
+    ['API:NtOpenFile', 1.120],
+    ['API:CryptEncrypt', 1.050],
+    ['STRING:kernel32.dll', 0.980],
+    ['API:NtWriteFile', 0.940],
+    ['API:NtCreateFile', 0.890],
+    ['API:RegSetValueExW', 0.850],
+    ['SIGNATURE:pe_section_text', 0.810],
+    ['API:NtReadFile', 0.780],
+    ['API:GetFileAttributesW', 0.720],
+    ['API:FindFirstFileW', 0.690],
+];
+
+const LGB_FEATURES = [
+    ['API:NtProtectVirtualMemory', 185],
+    ['API:LdrGetProcedureAddress', 162],
+    ['API:NtAllocateVirtualMemory', 148],
+    ['API:NtOpenFile', 135],
+    ['API:CryptEncrypt', 128],
+    ['API:NtWriteFile', 118],
+    ['API:NtCreateFile', 112],
+    ['API:RegSetValueExW', 98],
+    ['STRING:kernel32.dll', 95],
+    ['API:NtReadFile', 88],
+    ['SIGNATURE:packer_entropy', 82],
+    ['API:FindFirstFileW', 78],
+    ['API:GetFileAttributesW', 72],
+    ['STRING:!this program cannot...', 68],
+    ['API:NtQueryDirectoryFile', 62],
+];
+
+new Chart(document.getElementById('chart-features-lr'), {
+    type: 'bar',
+    data: {
+        labels: LR_FEATURES.map(f => f[0]),
+        datasets: [{
+            label: '|Coefficient|',
+            data: LR_FEATURES.map(f => f[1]),
+            backgroundColor: LR_FEATURES.map((_, i) => i === 0 ? 'rgba(244,63,94,0.7)' : 'rgba(99,102,241,0.5)'),
+            borderColor: LR_FEATURES.map((_, i) => i === 0 ? '#f43f5e' : '#6366f1'),
+            borderWidth: 1,
+            borderRadius: 4,
+        }]
+    },
+    options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { backgroundColor: 'rgba(17,24,39,0.95)', padding: 12, cornerRadius: 8 } },
+        scales: {
+            x: { ticks: { font: { family: "'JetBrains Mono'", size: 10 } }, grid: { color: 'rgba(255,255,255,0.03)' } },
+            y: { ticks: { font: { size: 9.5 } }, grid: { display: false } }
+        }
+    }
+});
+
+new Chart(document.getElementById('chart-features-lgb'), {
+    type: 'bar',
+    data: {
+        labels: LGB_FEATURES.map(f => f[0]),
+        datasets: [{
+            label: 'Split Count',
+            data: LGB_FEATURES.map(f => f[1]),
+            backgroundColor: 'rgba(16,185,129,0.5)',
+            borderColor: '#10b981',
+            borderWidth: 1,
+            borderRadius: 4,
+        }]
+    },
+    options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { backgroundColor: 'rgba(17,24,39,0.95)', padding: 12, cornerRadius: 8 } },
+        scales: {
+            x: { ticks: { font: { family: "'JetBrains Mono'", size: 10 } }, grid: { color: 'rgba(255,255,255,0.03)' } },
+            y: { ticks: { font: { size: 9.5 } }, grid: { display: false } }
+        }
+    }
+});
+
+// Feature Category Doughnut
+new Chart(document.getElementById('chart-feat-cat'), {
+    type: 'doughnut',
+    data: {
+        labels: ['API Calls (312)', 'String Patterns (108)', 'PE Signatures (63)'],
+        datasets: [{
+            data: [312, 108, 63],
+            backgroundColor: ['rgba(99,102,241,0.7)', 'rgba(6,182,212,0.7)', 'rgba(245,158,11,0.7)'],
+            borderColor: ['#6366f1', '#06b6d4', '#f59e0b'],
+            borderWidth: 2,
+            hoverOffset: 8,
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '55%',
+        plugins: {
+            legend: { position: 'bottom', labels: { padding: 16, usePointStyle: true, pointStyleWidth: 10 } },
+            tooltip: { backgroundColor: 'rgba(17,24,39,0.95)', padding: 12, cornerRadius: 8 }
+        }
+    }
+});
+
+// ═══════════════════════════════════════════════════════════
+// DRIFT CHARTS
+// ═══════════════════════════════════════════════════════════
+const DRIFT_YEARS = [2021, 2022, 2023, 2024];
+
+new Chart(document.getElementById('chart-drift-acc'), {
+    type: 'line',
+    data: {
+        labels: DRIFT_YEARS,
+        datasets: [{
+            label: 'Balanced Accuracy',
+            data: [99.08, 99.30, 98.58, 96.92],
+            borderColor: '#6366f1',
+            backgroundColor: 'rgba(99,102,241,0.1)',
+            fill: true,
+            tension: 0.3,
+            pointRadius: 6,
+            pointBackgroundColor: '#6366f1',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2,
+            borderWidth: 3,
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false },
+            tooltip: { backgroundColor: 'rgba(17,24,39,0.95)', padding: 12, cornerRadius: 8, callbacks: { label: ctx => ctx.raw + '% BalAcc' } }
+        },
+        scales: {
+            y: { min: 95, max: 100, ticks: { callback: v => v + '%', font: { family: "'JetBrains Mono'" } }, grid: { color: 'rgba(255,255,255,0.04)' } },
+            x: { ticks: { font: { family: "'JetBrains Mono'" } }, grid: { color: 'rgba(255,255,255,0.04)' } }
+        }
+    }
+});
+
+new Chart(document.getElementById('chart-drift-errors'), {
+    type: 'bar',
+    data: {
+        labels: DRIFT_YEARS,
+        datasets: [
+            { label: 'FPR (%)', data: [0.00, 1.41, 2.20, 3.03], backgroundColor: 'rgba(245,158,11,0.6)', borderColor: '#f59e0b', borderWidth: 1, borderRadius: 4 },
+            { label: 'FNR (%)', data: [1.83, 0.00, 0.63, 3.12], backgroundColor: 'rgba(244,63,94,0.5)', borderColor: '#f43f5e', borderWidth: 1, borderRadius: 4 }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { position: 'top', labels: { padding: 16, usePointStyle: true } },
+            tooltip: { backgroundColor: 'rgba(17,24,39,0.95)', padding: 12, cornerRadius: 8 }
+        },
+        scales: {
+            y: { ticks: { callback: v => v + '%', font: { family: "'JetBrains Mono'" } }, grid: { color: 'rgba(255,255,255,0.03)' } },
+            x: { ticks: { font: { family: "'JetBrains Mono'" } }, grid: { display: false } }
+        }
+    }
+});
+
+// ═══════════════════════════════════════════════════════════
+// ABLATION CHARTS
+// ═══════════════════════════════════════════════════════════
+new Chart(document.getElementById('chart-ablation'), {
+    type: 'bar',
+    data: {
+        labels: ['Baseline', 'Platt Cal.', 'θ=0.50', 'θ=0.90', 'CW=1.5', 'CW=2.0', 'Adv. Clean', 'Adv. Aug.'],
+        datasets: [{
+            label: 'Balanced Accuracy (%)',
+            data: [98.18, 98.18, 98.18, 95.85, 98.28, 97.42, 98.18, 97.22],
+            backgroundColor: [
+                'rgba(99,102,241,0.7)', 'rgba(16,185,129,0.7)', 'rgba(56,189,248,0.5)',
+                'rgba(244,63,94,0.5)', 'rgba(16,185,129,0.8)', 'rgba(245,158,11,0.5)',
+                'rgba(99,102,241,0.4)', 'rgba(217,70,239,0.6)'
+            ],
+            borderColor: ['#6366f1', '#10b981', '#38bdf8', '#f43f5e', '#10b981', '#f59e0b', '#6366f1', '#d946ef'],
+            borderWidth: 2,
+            borderRadius: 6,
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { backgroundColor: 'rgba(17,24,39,0.95)', padding: 12, cornerRadius: 8 } },
+        scales: {
+            y: { min: 94, max: 99, ticks: { callback: v => v + '%', font: { family: "'JetBrains Mono'" } }, grid: { color: 'rgba(255,255,255,0.03)' } },
+            x: { ticks: { font: { size: 10 } }, grid: { display: false } }
+        }
+    }
+});
+
+new Chart(document.getElementById('chart-tradeoff'), {
+    type: 'scatter',
+    data: {
+        datasets: [{
+            label: 'Configurations',
+            data: [
+                { x: 2.35, y: 98.18, label: 'Baseline' },
+                { x: 2.16, y: 98.28, label: 'CW=1.5' },
+                { x: 2.16, y: 97.95, label: 'CW=2.0' },
+                { x: 0.98, y: 95.85, label: 'θ=0.90' },
+                { x: 3.14, y: 97.22, label: 'Adv Aug' },
+            ],
+            backgroundColor: ['#6366f1', '#10b981', '#f59e0b', '#f43f5e', '#d946ef'],
+            borderColor: ['#6366f1', '#10b981', '#f59e0b', '#f43f5e', '#d946ef'],
+            pointRadius: 10,
+            pointHoverRadius: 14,
+            borderWidth: 2,
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                callbacks: { label: ctx => `${ctx.raw.label}: BalAcc ${ctx.raw.y}%, FPR ${ctx.raw.x}%` },
+                backgroundColor: 'rgba(17,24,39,0.95)', padding: 12, cornerRadius: 8
+            }
+        },
+        scales: {
+            x: { title: { display: true, text: 'False Positive Rate (%)', font: { size: 11 } }, ticks: { callback: v => v + '%', font: { family: "'JetBrains Mono'" } }, grid: { color: 'rgba(255,255,255,0.04)' } },
+            y: { min: 94, max: 99, title: { display: true, text: 'Balanced Accuracy (%)', font: { size: 11 } }, ticks: { callback: v => v + '%', font: { family: "'JetBrains Mono'" } }, grid: { color: 'rgba(255,255,255,0.04)' } }
+        }
+    }
+});
+
+// ═══════════════════════════════════════════════════════════
+// DATASET CHARTS
+// ═══════════════════════════════════════════════════════════
+new Chart(document.getElementById('chart-split'), {
+    type: 'doughnut',
+    data: {
+        labels: ['Train Goodware (839)', 'Train Ransomware (3,066)', 'Test Goodware (510)', 'Test Ransomware (465)'],
+        datasets: [{
+            data: [839, 3066, 510, 465],
+            backgroundColor: ['rgba(16,185,129,0.6)', 'rgba(244,63,94,0.6)', 'rgba(16,185,129,0.3)', 'rgba(244,63,94,0.3)'],
+            borderColor: ['#10b981', '#f43f5e', '#10b981', '#f43f5e'],
+            borderWidth: 2,
+            hoverOffset: 8,
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '50%',
+        plugins: {
+            legend: { position: 'bottom', labels: { padding: 12, usePointStyle: true, pointStyleWidth: 10, font: { size: 10 } } },
+            tooltip: { backgroundColor: 'rgba(17,24,39,0.95)', padding: 12, cornerRadius: 8 }
+        }
+    }
+});
+
+new Chart(document.getElementById('chart-year-dist'), {
+    type: 'bar',
+    data: {
+        labels: ['2006-2010', '2011-2015', '2016-2020', '2021', '2022', '2023', '2024'],
+        datasets: [
+            { label: 'Goodware', data: [120, 180, 280, 26, 71, 182, 231], backgroundColor: 'rgba(16,185,129,0.5)', borderColor: '#10b981', borderWidth: 1, borderRadius: 4 },
+            { label: 'Ransomware', data: [450, 820, 1200, 218, 57, 158, 32], backgroundColor: 'rgba(244,63,94,0.5)', borderColor: '#f43f5e', borderWidth: 1, borderRadius: 4 }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { position: 'top', labels: { padding: 12, usePointStyle: true } },
+            tooltip: { backgroundColor: 'rgba(17,24,39,0.95)', padding: 12, cornerRadius: 8 }
+        },
+        scales: {
+            y: { stacked: true, ticks: { font: { family: "'JetBrains Mono'" } }, grid: { color: 'rgba(255,255,255,0.03)' } },
+            x: { stacked: true, ticks: { font: { size: 10 } }, grid: { display: false } }
+        }
+    }
+});
+
+// Family bar chart
+new Chart(document.getElementById('chart-families'), {
+    type: 'bar',
+    data: {
+        labels: ['pajetbin', 'virlock', 'cryptolocker', 'locker', 'reveton', 'winlock', 'cerber', 'wannacry', 'teslacrypt', 'locky', 'gandcrab', 'petya', 'ryuk'],
+        datasets: [{
+            label: 'Training Samples',
+            data: [420, 340, 310, 280, 260, 180, 160, 140, 120, 110, 95, 80, 70],
+            backgroundColor: 'rgba(139,92,246,0.5)',
+            borderColor: '#8b5cf6',
+            borderWidth: 1,
+            borderRadius: 4,
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { backgroundColor: 'rgba(17,24,39,0.95)', padding: 12, cornerRadius: 8 } },
+        scales: {
+            y: { ticks: { font: { family: "'JetBrains Mono'" } }, grid: { color: 'rgba(255,255,255,0.03)' } },
+            x: { ticks: { font: { size: 10 } }, grid: { display: false } }
+        }
+    }
+});
+
+// ═══════════════════════════════════════════════════════════
+// PARAMETERS GRID
+// ═══════════════════════════════════════════════════════════
+const PARAMS = [
+    { name: 'Logistic Regression (L2)', color: '#6366f1', params: { 'C': '1.0', 'solver': 'liblinear', 'penalty': 'l2', 'max_iter': '1000', 'random_state': '42' } },
+    { name: 'Logistic Regression (L1)', color: '#8b5cf6', params: { 'C': '1.0', 'solver': 'liblinear', 'penalty': 'l1', 'max_iter': '1000', 'random_state': '42' } },
+    { name: 'Logistic Regression (Elastic)', color: '#d946ef', params: { 'C': '1.0', 'solver': 'saga', 'penalty': 'elasticnet', 'l1_ratio': '0.5', 'max_iter': '4000' } },
+    { name: 'Linear SVM', color: '#38bdf8', params: { 'C': '1.0', 'dual': 'auto', 'max_iter': '4000', 'random_state': '42' } },
+    { name: 'Decision Tree', color: '#f43f5e', params: { 'criterion': 'gini', 'max_depth': '15', 'random_state': '42' } },
+    { name: 'Random Forest', color: '#10b981', params: { 'n_estimators': '100', 'max_depth': '20', 'n_jobs': '-1', 'random_state': '42' } },
+    { name: 'Extra Trees', color: '#06b6d4', params: { 'n_estimators': '100', 'max_depth': '20', 'n_jobs': '-1', 'random_state': '42' } },
+    { name: 'LightGBM', color: '#f59e0b', params: { 'n_estimators': '100', 'learning_rate': '0.1', 'random_state': '42', 'verbose': '-1' } },
+    { name: 'XGBoost', color: '#ec4899', params: { 'n_estimators': '100', 'learning_rate': '0.1', 'max_depth': '6', 'eval_metric': 'logloss' } },
+    { name: 'MLP (sklearn)', color: '#a855f7', params: { 'hidden_layers': '(64,)', 'max_iter': '300', 'early_stopping': 'True', 'validation_frac': '0.1' } },
+];
+
+const paramsGrid = document.getElementById('params-grid');
+PARAMS.forEach(m => {
+    const pills = Object.entries(m.params).map(([k, v]) =>
+        `<span class="param-pill"><span class="param-key">${k}</span><span class="param-val">${v}</span></span>`
+    ).join('');
+    paramsGrid.innerHTML += `
+        <div class="param-card">
+            <div class="param-card-name"><span class="dot" style="background:${m.color}"></span>${m.name}</div>
+            <div>${pills}</div>
+        </div>
+    `;
+});
+</script>
+</body>
+</html>

@@ -1,5 +1,7 @@
 # Data directory
 
+> 📖 **Comprehensive Catalog:** See [datasets/README.md](file:///c:/Users/hii/Prodja/ransom-early-detect/datasets/README.md) and [`datasets/dataset_manifest.json`](file:///c:/Users/hii/Prodja/ransom-early-detect/datasets/dataset_manifest.json) for the full dataset directory manifest with verified row/column counts, variable types, and SHA256 checksums.
+
 ## Provenance and integrity
 
 ### MLRan released data (`data/raw/mlran/`)
