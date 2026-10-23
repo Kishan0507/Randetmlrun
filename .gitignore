@@ -10,6 +10,7 @@ data/raw/**/*.zip
 data/processed/*.parquet
 data/raw/ransmap/
 data/raw/cuckoo_samples/
+data/raw/malware_API_dataset.csv
 # never commit malware or raw sandbox reports containing paths/IPs
 *.bin
 *.sample

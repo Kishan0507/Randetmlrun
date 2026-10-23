@@ -193,3 +193,19 @@ Every metric you quote anywhere must trace to an entry here.
   - Conclusion: Augmenting static window features with sequential trajectory and temporal history yields statistically significant gains in early detection recall (+6.74% to +11.61%) while preserving low false alarm rates on benign desktop software.
 - Artifacts: `src/features/sequential_ransmap.py`, `scripts/run_sequence_experiments.py`, `tests/test_sequential_ransmap.py`
 
+## E-080 | 2026-10-23 | APIMDS External Dataset Benchmark | Task: T-P10-08
+- Run by: Karthikey / Antigravity
+- Git commit: pending   Config: configs/default.yaml   Seed: 42
+- Data: APIMDS (Ki et al. / HCRL Korea University, 23,146 executions, 17,268 labeled: 13,684 other malware, 3,137 benign, 447 ransomware).
+- Method: Extracted 200 API vocabulary presence/frequency + domain category totals + lifecycle pattern matches. Stratified train/test (80/20 for general malware, 75/25 for targeted ransomware). Evaluated L2 Logistic Regression, LightGBM, Random Forest.
+- Results Task 1 (General Malware vs Benign, 17,268 samples):
+  - LightGBM: BalAcc = **97.87%**, F1 = **99.36%**, Precision = 99.15%, Recall = 99.58%, ROC-AUC = **0.9970** (fit: 1.36s)
+  - Random Forest: BalAcc = **97.68%**, F1 = **99.42%**, Precision = 99.02%, Recall = 99.82%, ROC-AUC = **0.9975** (fit: 0.59s)
+  - Logistic Regression (L2): BalAcc = **97.36%**, F1 = **98.97%**, Precision = 99.08%, Recall = 98.87%, ROC-AUC = **0.9918** (fit: 1.90s)
+- Results Task 2 (Targeted Ransomware vs Benign, 447 Ransomware vs 3,137 Benign):
+  - LightGBM: BalAcc = **96.43%**, Ransomware Recall (Catch Rate) = **93.75%**, Precision = **93.75%**, ROC-AUC = **0.9963**
+  - Random Forest: BalAcc = **95.85%**, Ransomware Recall = **92.86%**, Precision = 92.04%, ROC-AUC = **0.9979**
+  - Logistic Regression (L2): BalAcc = **95.41%**, Ransomware Recall = **91.96%**, Precision = 91.96%, ROC-AUC = **0.9962**
+- Top Behavioral Features: `API_FREQ_GetModuleFileNameA`, `API_FREQ_VirtualProtectEx`, `API_FREQ_CreateFileW`, `API_FREQ_lstrcpynW`, `API_FREQ_CreateSemaphoreA`, `seq_length`, `unique_apis_count`.
+- Artifacts: `src/data/load_apimds.py`, `tests/test_apimds.py`, `scripts/benchmark_apimds.py`, `reports/apimds_evaluation.md`
+

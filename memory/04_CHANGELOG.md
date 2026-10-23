@@ -12,6 +12,20 @@
 - Follow-ups: <what the next person should do>
 ```
 
+## C-015 | 2026-10-23 | T-P10-08
+- Contributor (human): Karthikey Kadati & Kalyani (Member 3)
+- Agent / IDE: Antigravity (Gemini 3.8 Flash)
+- What changed:
+  - Created APIMDS dataset loader and sequential feature extractor in `src/data/load_apimds.py` supporting 23,146 execution traces across 1,165 distinct APIs.
+  - Added unit test suite `tests/test_apimds.py` covering sample categorization, feature matrix generation, and vocabulary extraction (3/3 passing, full test suite expanded to 72/72 passing).
+  - Authored and executed benchmark script `scripts/benchmark_apimds.py` evaluating L2 Logistic Regression, LightGBM, and Random Forest on general malware and targeted ransomware detection.
+  - Generated comprehensive external evaluation report in `reports/apimds_evaluation.md`.
+  - Authored deep project explainer in `explain.md` and updated experiment log with `E-080`.
+- Why: User request to incorporate and evaluate the external "APIMDS: API Call Sequence–Based Malware Detection Dataset" and verify cross-dataset behavioral transferability.
+- Verification: Pytest suite 72/72 passing green; benchmark script completed successfully with 97.87% BalAcc on general malware and 96.43% BalAcc on targeted ransomware.
+- Plan impact: Task T-P10-08 completed.
+- Follow-ups: None.
+
 ## C-014 | 2026-10-23 | P-003
 - Contributor (human): Member 1 (Project Lead)
 - Agent / IDE: Antigravity (Gemini 3.8 Flash)

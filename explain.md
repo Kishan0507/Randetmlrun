@@ -50,10 +50,11 @@ graph LR
 * **Early Detection (Median 18.0s):** Invented a **Two-Stage Architecture** that freezes malicious processes within 18 seconds while maintaining a **0.00 false-alarm rate** on legitimate encryption tools like AESCrypt.
 * **Tested Against 8 ML Algorithms:** Proved that an ultra-lightweight L2-regularized Logistic Regression (only **9.2 Kilobytes** in size, executing in **0.014 milliseconds**) outperforms heavy, slow neural networks and tree ensembles when concept drift occurs.
 * **Zero-Day Catch Rate:** Proved via Leave-One-Family-Out (LOFO) testing that our system catches **97.95%** of completely unknown, never-before-seen ransomware families.
+* **External Dataset Generalization (APIMDS):** Evaluated our behavioral sequence pipelines on the external 23,146-sample APIMDS dataset, achieving **97.87% balanced accuracy** on general malware and **96.43%** on targeted ransomware.
 * **White-Box Explainability:** Integrated exact linear SHAP explanations that translate raw mathematical features into plain-language MITRE ATT&CK security reasons in **0.015 seconds**.
 * **Adversarial Hardening:** Reduced gradient-based adversarial evasion from 96.3% down to 54.0% (+42.4% defense gain).
 * **Interactive SOC Dashboard:** Built a complete 4-tab Streamlit web application with live sample inspection, interactive RanSMAP execution timeline replay, persistent SQLite alert management, and model provenance cards.
-* **100% Passing Test Suite:** 69 out of 69 automated tests passing green across all modules.
+* **100% Passing Test Suite:** 72 out of 72 automated tests passing green across all modules.
 
 ---
 
@@ -94,19 +95,19 @@ We verified 14 specific audit items (**A1 through A14**) using automated code (`
 
 ## 4. The Raw Fuel — Datasets Explained
 
-To solve the dual challenges of **holistic accuracy** and **real-time speed**, this project bridges two distinct, complementary datasets:
+To solve the dual challenges of **holistic accuracy**, **real-time speed**, and **cross-dataset generalization**, this project bridges three distinct, complementary datasets:
 
 ```
-┌───────────────────────────────────────────────┐   ┌───────────────────────────────────────────────┐
-│                 MLRan Dataset                 │   │                RanSMAP Dataset                │
-│       (High-Level User-Mode Execution)        │   │        (Low-Level OS Kernel Storage I/O)      │
-├───────────────────────────────────────────────┤   ├───────────────────────────────────────────────┤
-│ • 4,880 samples (3,905 train, 975 test)       │   │ • 1,970 machine executions (~32 GB raw data)  │
-│ • Spans 2008 to 2024                          │   │ • Sub-second hardware timestamps (sec + ns)   │
-│ • 483 selected features (APIs, Registry, Drop)│   │ • Logical Block Addresses (LBA) & write sizes │
-│ • Static PE strings, section entropy          │   │ • Shannon entropy per disk sector (0 to 8)    │
-│ • Full post-execution summary (120s view)     │   │ • 6 ransomware families + 6 benign apps       │
-└───────────────────────────────────────────────┘   └───────────────────────────────────────────────┘
+┌───────────────────────────────────────┐ ┌───────────────────────────────────────┐ ┌───────────────────────────────────────┐
+│             MLRan Dataset             │ │            RanSMAP Dataset            │ │             APIMDS Dataset            │
+│    (High-Level User-Mode Execution)   │ │    (Low-Level OS Kernel Storage I/O)  │ │      (Dynamic API Call Sequences)     │
+├───────────────────────────────────────┤ ├───────────────────────────────────────┤ ├───────────────────────────────────────┤
+│ • 4,880 samples (3,905 train, 975 test)│ │ • 1,970 machine executions (~32 GB)   │ │ • 23,146 executions (17,268 labeled)  │
+│ • Spans 2008 to 2024                  │ │ • Sub-second hardware timestamps (ns) │ │ • 1,165 distinct Windows API calls    │
+│ • 483 selected features (APIs, Reg)   │ │ • Logical Block Addresses (LBA)       │ │ • 13,684 malware, 3,137 benign, 447 ran│
+│ • Static PE strings, section entropy  │ │ • Shannon entropy per sector (0 to 8) │ │ • Sequences up to 595 API calls       │
+│ • Full post-execution summary (120s)  │ │ • 6 ransomware families + 6 benign    │ │ • Ki et al. / HCRL Korea University   │
+└───────────────────────────────────────┘ └───────────────────────────────────────┘ └───────────────────────────────────────┘
 ```
 
 ### 1. MLRan Dataset (Behavioral & Static Features)
@@ -126,6 +127,11 @@ To solve the dual challenges of **holistic accuracy** and **real-time speed**, t
   * `size`: Number of sectors written in that operation.
   * `entropy`: The Shannon entropy (randomness) of the raw bytes written to the sector (values range from $0.0$ for empty/zero bytes to $8.0$ for completely random or encrypted data).
 * **Why it's useful:** Regardless of how much a ransomware author obfuscates their code or renames APIs, **they cannot hide from the physical disk**. To encrypt files, they must write high-entropy ciphertext to storage blocks.
+
+### 3. APIMDS Dataset (Dynamic API Sequence Benchmark)
+* **What it contains:** 23,146 chronological execution traces from Ki et al. (*HCRL / Korea University*), capturing the ordered sequence of Windows API calls made by executables.
+* **Composition:** 14,131 malicious samples (including 447 dedicated ransomware strains like `Trojan-Ransom.Win32.*`), 3,137 benign grayware/utility samples (`not-a-virus:*`), and 5,878 unlabeled samples.
+* **Why it's useful:** Directly evaluates whether sequential behavioral patterns (*Find $\rightarrow$ Open $\rightarrow$ Encrypt $\rightarrow$ Delete*) generalize across external dynamic datasets without reliance on compiler-specific static PE artifacts. Our models achieve **97.87% balanced accuracy** on general malware and **96.43%** on targeted ransomware.
 
 ---
 
@@ -431,6 +437,7 @@ Randetmlrun/
 ├── src/                                     # Production source code
 │   ├── data/
 │   │   ├── load_mlran.py                    # Leak-free MLRan dataset loader
+│   │   ├── load_apimds.py                   # APIMDS 23k sequence dataset loader
 │   │   └── ransmap.py                       # Storage I/O windowing & feature engine
 │   ├── features/
 │   │   ├── sequence.py                      # API n-grams, transitions & lifecycle patterns
@@ -466,7 +473,7 @@ Randetmlrun/
 │   ├── 03_PAPER_AUDIT.md                    # Verification records for Audit items A1–A14
 │   ├── 05_DECISIONS.md                      # Architecture Decision Records (D-001 to D-011)
 │   ├── 08_HANDOFF.md                        # State of the codebase & current status
-│   └── 09_EXPERIMENT_LOG.md                 # Traceability log for all experiments (E-001..E-071)
+│   └── 09_EXPERIMENT_LOG.md                 # Traceability log for all experiments (E-001..E-080)
 │
 ├── reports/                                 # Detailed markdown experiment reports
 │   ├── final_report.md                      # Comprehensive academic final report
@@ -474,14 +481,16 @@ Randetmlrun/
 │   ├── ablations.md                         # Component on/off ablation study
 │   ├── limitations.md                       # Comprehensive threats to validity
 │   ├── drift.md                             # Concept drift analysis over 2021–2024
-│   └── fp_analysis.md                       # False-positive root cause investigation
+│   ├── fp_analysis.md                       # False-positive root cause investigation
+│   └── apimds_evaluation.md                 # APIMDS 23k sample external benchmark
 │
 ├── scripts/                                 # CLI reproduction scripts
 │   ├── reproduce_all.py                     # Single-command master table reproduction
 │   ├── reproduce_baseline.py                # Recreates the published 98.18% baseline
-│   └── drift_and_fp_analysis.py             # Runs temporal drift & FP attribution
+│   ├── drift_and_fp_analysis.py             # Runs temporal drift & FP attribution
+│   └── benchmark_apimds.py                  # APIMDS multi-model evaluation
 │
-└── tests/                                   # 69 passing unit & integration tests
+└── tests/                                   # 72 passing unit & integration tests
 ```
 
 ---
@@ -491,6 +500,7 @@ Randetmlrun/
 | Benchmark / Capability | State of the Art (MLRan 2026 Paper) | Our Enhanced System | Real-World Benefit |
 |---|---|---|---|
 | **Binary Balanced Accuracy** | 98.18% (with test snooping) | **98.18%** (Strictly leak-free) | Honest, reproducible evaluation without test-set contamination. |
+| **External Benchmark (APIMDS)** | Not evaluated | **97.87% BalAcc, 96.43% Ransomware** | Validates generalization across 23,146 independent API traces. |
 | **Time to Detection (TTD)** | 120.0s (Waits for run to complete) | **18.0 seconds (Median)** | **Ransomware is intercepted before files are encrypted.** |
 | **Benign Encryption False Alarms** | Not tested on storage streams | **0.0% False Alarms on AESCrypt** | Legitimate encryption tools run smoothly without false blocks. |
 | **Unseen Family Detection (Zero-Day)** | Not evaluated | **97.95% Catch Rate (LOFO)** | Reliably defends against novel, emerging ransomware strains. |
