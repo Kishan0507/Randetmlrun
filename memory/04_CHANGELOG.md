@@ -12,6 +12,22 @@
 - Follow-ups: <what the next person should do>
 ```
 
+## C-016 | 2026-10-23 | P-004
+- Contributor (human): Kishan (Member 1, Project Lead)
+- Agent / IDE: Antigravity (Gemini 3.8 Flash)
+- What changed:
+  - Resolved RanSMAP execution replay crash on Windows (`OSError: exception: access violation reading 0x0000000000000000`) caused by LightGBM C-library dataset setter by integrating a robust Random Forest window pipeline with graceful Logistic Regression fallback.
+  - Resolved `NameError: name 'json' is not defined` by adding `import json` to `dashboard/app.py`.
+  - Added robust dataset input parsing (`parse_dataset_input()`) capable of handling 483-feature CSVs, 487-column MLRan full datasets, and arbitrary header order.
+  - Enhanced Streamlit Tab 1 ("🔍 Live Sample Inspector") with repository catalog selection, sample row selection, and an expandable interactive Batch Evaluation suite with real-time confusion matrix and predictions CSV export.
+  - Added Streamlit Tab 6 ("📁 Datasets Catalog & Batch Evaluator") with full repository dataset exploration, multi-model evaluation selector across 7 algorithms, decision threshold tuning, confusion matrix heatmap, and score distribution histogram.
+  - Added Client-Side Live Dataset Evaluator and CSV ingestion to `dashboard/analytics.html` with embedded calibrated Logistic Regression L2 model weights (`dashboard/lr_weights.json`) and 50-sample quick benchmark.
+  - Organized datasets into `datasets/mlran_483_rfe/` and created lightweight sample test batches in `datasets/samples/`.
+- Why: User request P-004 from Kishan (Member 1) to run services, show how it works, ensure dataset input works across frontends, and push all changes to GitHub.
+- Verification: Python 3.12 syntax check passed with 0 errors; batch evaluation on 975 test samples verified (98.18% BalAcc, [[498, 12], [6, 459]]); Streamlit verified on `localhost:8501`; HTML analytics verified on `localhost:8080/dashboard/analytics.html`.
+- Plan impact: P-004 completed.
+- Follow-ups: Ready for proctor presentation and GitHub repository push.
+
 ## C-015 | 2026-10-23 | T-P10-08
 - Contributor (human): Karthikey Kadati & Kalyani (Member 3)
 - Agent / IDE: Antigravity (Gemini 3.8 Flash)

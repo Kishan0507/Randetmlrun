@@ -97,5 +97,27 @@ Quick way to give one: in Cursor/Antigravity type `/new-patch <your request>`.
 - Closed by: Member 1 / Antigravity on 2026-10-23
 - Side effects / follow-ups: None.
 
+## P-004 | Frontend Dataset Ingestion, Batch Evaluator, Windows Telemetry Fix & Push | Status: DONE
+- Requested by: Kishan (Member 1) on 2026-10-23
+- Prompt (verbatim): "run it and show how it works and if give the datsets in the frontend also it should work and later if its working then push to github i'm member 1 kishan"
+- Interpretation / scope:
+  1. Fix Windows access violation in RanSMAP streaming replay caused by LightGBM C-library (`_LIB.LGBM_DatasetSetField`) by replacing with robust Random Forest pipeline.
+  2. Fix `NameError: name 'json' is not defined` in `dashboard/app.py`.
+  3. Support full dataset ingestion and evaluation in the frontend:
+     - In Streamlit Tab 1: add Project Dataset selection and intelligent CSV parsing (handling 483-feature CSVs and 487-column MLRan datasets with metadata and ground truth), individual sample selector, and batch evaluation with confusion matrix.
+     - In Streamlit Tab 6 ("📁 Datasets Catalog & Batch Evaluator"): add full repository dataset explorer, multi-model batch evaluation suite (LR L2, LightGBM, Extra Trees, Linear SVM, Random Forest, MLP, Decision Tree), operating threshold slider, interactive confusion matrix, score distribution histogram, and CSV export.
+     - In standalone `dashboard/analytics.html`: add Client-Side Live Dataset Evaluator and CSV ingestion with embedded calibrated model weights (`dashboard/lr_weights.json`) and 50-sample quick benchmark.
+  4. Create organized copies of datasets in `datasets/mlran_483_rfe/` and lightweight sample batches in `datasets/samples/`.
+  5. Run services and verify end-to-end functionality.
+  6. Push all changes to GitHub under `main` branch credited to Kishan (Member 1).
+- Priority: blocker
+- Related tasks/decisions: T-P8-03, T-P8-04, T-P8-05, P-002, P-003
+- Files expected to change: `dashboard/app.py`, `dashboard/analytics.html`, `dashboard/lr_weights.json`, `datasets/mlran_483_rfe/*`, `datasets/samples/*`, `memory/*`
+- Implementation notes: Added `import json`; implemented `parse_dataset_input()`; upgraded Tab 1 with catalog picker and batch evaluation expander; resolved Windows LightGBM crash by utilizing robust Random Forest in `load_ransmap_executions_cached()`; created Tab 6 Datasets Catalog & Batch Evaluator; built client-side JS evaluation engine in `analytics.html`; exported `dashboard/lr_weights.json`; populated `datasets/mlran_483_rfe/` and `datasets/samples/sample_test_batch_50.csv`.
+- Verification: Python 3.12 syntax check passed; batch evaluation on 975 test samples verified (98.18% BalAcc, [[498, 12], [6, 459]]); Streamlit live on `localhost:8501`; HTML analytics live on `localhost:8080/dashboard/analytics.html`.
+- Closed by: Kishan (Member 1) / Antigravity on 2026-10-23
+- Side effects / follow-ups: None.
+
+
 
 

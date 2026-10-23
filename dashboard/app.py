@@ -11,6 +11,7 @@ Features:
 
 from __future__ import annotations
 
+import json
 import sys
 import time
 from pathlib import Path
@@ -244,9 +245,13 @@ def load_ransmap_executions_cached():
 
     threshold = fit_entropy_threshold(execs, percentile=95.0)
     dataset = build_windowed_dataset(execs, window_sec=2.0, stride_sec=1.0, entropy_threshold=threshold, load_data=False)
-    # Fit window LightGBM model for replay
-    pipe = make_window_pipeline("lgbm", seed=42)
-    pipe.fit(dataset.X, dataset.y_binary)
+    # Fit window classifier model for replay (Random Forest / Logistic Regression)
+    try:
+        pipe = make_window_pipeline("rf", seed=42)
+        pipe.fit(dataset.X, dataset.y_binary)
+    except Exception:
+        pipe = make_window_pipeline("lr", seed=42)
+        pipe.fit(dataset.X, dataset.y_binary)
     return execs, dataset, pipe, threshold
 
 
@@ -267,6 +272,47 @@ st.sidebar.markdown(
 st.sidebar.markdown(f"**Model Version:** `{MODEL_VERSION}`  \n**Contributor:** Kalyani (Member 3)")
 st.sidebar.markdown("---")
 
+def parse_dataset_input(df: pd.DataFrame) -> Tuple[np.ndarray, List[str], Optional[np.ndarray], Optional[List[str]]]:
+    """Robustly parse an uploaded or catalog dataset DataFrame.
+    
+    Handles:
+      - 487-column MLRan format (sample_id, sample_type, family_label, type_label + 483 features)
+      - 484-column format (sample_id + 483 features)
+      - 483-column pure numeric features
+      - Extra metadata / unnamed index columns
+      
+    Returns:
+      (X_features, sample_ids, y_labels_or_None, families_or_None)
+    """
+    df_clean = df.copy()
+    if "Unnamed: 0" in df_clean.columns:
+        df_clean = df_clean.drop(columns=["Unnamed: 0"])
+        
+    sample_ids: List[str] = []
+    y_labels: Optional[np.ndarray] = None
+    families: Optional[List[str]] = None
+    
+    if "sample_id" in df_clean.columns:
+        sample_ids = df_clean["sample_id"].astype(str).tolist()
+    else:
+        sample_ids = [f"Sample_{i+1}" for i in range(len(df_clean))]
+        
+    if "sample_type" in df_clean.columns:
+        y_labels = df_clean["sample_type"].astype(int).values
+        
+    if "family_label" in df_clean.columns:
+        families = df_clean["family_label"].astype(str).tolist()
+        
+    meta_cols = {"sample_id", "sample_type", "family_label", "type_label", "md5", "sha256", "title", "filename", "description"}
+    feat_cols = [c for c in df_clean.columns if c not in meta_cols]
+    
+    if len(feat_cols) > 483:
+        feat_cols = feat_cols[:483]
+        
+    X_features = df_clean[feat_cols].apply(pd.to_numeric, errors='coerce').fillna(0).values
+    return X_features, sample_ids, y_labels, families
+
+
 nav_choice = st.sidebar.radio(
     "Navigation",
     [
@@ -275,6 +321,7 @@ nav_choice = st.sidebar.radio(
         "📋 Threat Alert Database",
         "📊 Model Card & Drift Health",
         "🔬 Model Variations & Parameter Analytics",
+        "📁 Datasets Catalog & Batch Evaluator",
     ],
     index=0,
 )
@@ -297,7 +344,11 @@ if nav_choice == "🔍 Live Sample Inspector":
     with col_input:
         input_mode = st.radio(
             "Select Input Source:",
-            ["Pick from Test Set", "Upload Custom Feature CSV"],
+            [
+                "🎯 Pick from Test Set (975 Samples)",
+                "📂 Select from Project Datasets Catalog",
+                "📤 Upload Custom Dataset / Feature CSV",
+            ],
             horizontal=True,
         )
 
@@ -305,8 +356,12 @@ if nav_choice == "🔍 Live Sample Inspector":
     sample_features = None
     true_label = None
     true_family = None
+    batch_X = None
+    batch_ids = None
+    batch_y = None
+    batch_fams = None
 
-    if input_mode == "Pick from Test Set":
+    if input_mode == "🎯 Pick from Test Set (975 Samples)":
         with col_input:
             filter_type = st.selectbox(
                 "Filter Samples By Class:",
@@ -350,16 +405,116 @@ if nav_choice == "🔍 Live Sample Inspector":
                 unsafe_allow_html=True,
             )
 
+    elif input_mode == "📂 Select from Project Datasets Catalog":
+        with col_input:
+            catalog_options = {
+                "Quick Test Batch (50 Samples - 25 Ran / 25 Good)": "datasets/samples/sample_test_batch_50.csv",
+                "MLRan Holdout Test Set (975 Samples × 483 Features)": "data/raw/mlran/MLRan_X_test_RFE.csv",
+                "MLRan Training Set (3,905 Samples × 483 Features)": "data/raw/mlran/MLRan_X_train_RFE.csv",
+                "Single Ransomware Vector (Pure 483 Features)": "datasets/samples/pure_features_ransomware.csv",
+                "Single Goodware Vector (Pure 483 Features)": "datasets/samples/pure_features_goodware.csv",
+            }
+            chosen_cat_name = st.selectbox("Choose Dataset from Project Repository:", list(catalog_options.keys()))
+            chosen_path = PROJECT_ROOT / catalog_options[chosen_cat_name]
+            
+            if chosen_path.exists():
+                df_cat = pd.read_csv(chosen_path)
+                batch_X, batch_ids, batch_y, batch_fams = parse_dataset_input(df_cat)
+                st.success(f"Loaded `{chosen_path.name}`: **{len(batch_ids)}** samples, **{batch_X.shape[1]}** features detected.")
+                
+                if len(batch_ids) > 1:
+                    chosen_idx = st.selectbox(
+                        "Pick a Sample to Inspect Individually:",
+                        range(len(batch_ids)),
+                        format_func=lambda i: f"#{i+1}: ID={batch_ids[i]}" + (f" | Ground Truth: {'🔴 Ran' if (batch_y is not None and batch_y[i]==1) else '🟢 Good'}" if batch_y is not None else "")
+                    )
+                    sample_id = batch_ids[chosen_idx]
+                    sample_features = batch_X[chosen_idx]
+                    if batch_y is not None:
+                        true_label = int(batch_y[chosen_idx])
+                    if batch_fams is not None:
+                        true_family = str(batch_fams[chosen_idx])
+                else:
+                    sample_id = batch_ids[0]
+                    sample_features = batch_X[0]
+                    if batch_y is not None:
+                        true_label = int(batch_y[0])
+                    if batch_fams is not None:
+                        true_family = str(batch_fams[0])
+            else:
+                st.error(f"File not found: {chosen_path}")
+                st.stop()
+                
+        with col_meta:
+            st.markdown(
+                f"""
+                <div class="metric-card">
+                    <div class="metric-label">Dataset Info</div>
+                    <div style="font-size: 0.95rem; margin-top: 6px;">
+                        <b>Dataset:</b> <code>{Path(catalog_options[chosen_cat_name]).name}</code><br>
+                        <b>Total Samples:</b> {len(batch_ids)}<br>
+                        <b>Features:</b> {batch_X.shape[1]}<br>
+                        <b>Selected ID:</b> <code>{sample_id}</code><br>
+                        <b>Ground Truth:</b> {'🔴 Ransomware' if true_label == 1 else ('🟢 Goodware' if true_label == 0 else 'Unknown')}<br>
+                        <b>Family:</b> {true_family if true_family else 'N/A'}
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
     else:
-        uploaded_file = st.file_uploader("Upload CSV containing 483 numeric feature values:", type=["csv"])
-        if uploaded_file is not None:
-            df_up = pd.read_csv(uploaded_file)
-            st.success(f"Loaded CSV with {df_up.shape[1]} columns")
-            sample_id = "uploaded_sample"
-            sample_features = df_up.iloc[0].values
-        else:
-            st.info("Awaiting CSV upload...")
-            st.stop()
+        # Upload Custom Dataset / Feature CSV
+        with col_input:
+            uploaded_file = st.file_uploader(
+                "Upload ANY Dataset CSV (supports 483-feature CSVs or 487-column MLRan datasets):",
+                type=["csv"],
+                help="Accepts single-row or multi-row CSV files with 483 numeric features (optionally with sample_id and label columns)."
+            )
+            if uploaded_file is not None:
+                df_up = pd.read_csv(uploaded_file)
+                batch_X, batch_ids, batch_y, batch_fams = parse_dataset_input(df_up)
+                st.success(f"Successfully parsed **{len(batch_ids)}** samples with **{batch_X.shape[1]}** features.")
+                
+                if len(batch_ids) > 1:
+                    chosen_idx = st.selectbox(
+                        "Select Sample from Uploaded Dataset:",
+                        range(len(batch_ids)),
+                        format_func=lambda i: f"#{i+1}: ID={batch_ids[i]}" + (f" | Ground Truth: {'🔴 Ran' if (batch_y is not None and batch_y[i]==1) else '🟢 Good'}" if batch_y is not None else "")
+                    )
+                    sample_id = batch_ids[chosen_idx]
+                    sample_features = batch_X[chosen_idx]
+                    if batch_y is not None:
+                        true_label = int(batch_y[chosen_idx])
+                    if batch_fams is not None:
+                        true_family = str(batch_fams[chosen_idx])
+                else:
+                    sample_id = batch_ids[0]
+                    sample_features = batch_X[0]
+                    if batch_y is not None:
+                        true_label = int(batch_y[0])
+                    if batch_fams is not None:
+                        true_family = str(batch_fams[0])
+            else:
+                st.info("Awaiting CSV dataset upload. You can test by uploading any CSV from `datasets/` or `data/raw/mlran/`.")
+                st.stop()
+                
+        with col_meta:
+            st.markdown(
+                f"""
+                <div class="metric-card">
+                    <div class="metric-label">Uploaded Dataset</div>
+                    <div style="font-size: 0.95rem; margin-top: 6px;">
+                        <b>Filename:</b> <code>{uploaded_file.name}</code><br>
+                        <b>Total Samples:</b> {len(batch_ids)}<br>
+                        <b>Active Sample ID:</b> <code>{sample_id}</code><br>
+                        <b>Ground Truth:</b> {'🔴 Ransomware' if true_label == 1 else ('🟢 Goodware' if true_label == 0 else 'Unknown')}<br>
+                        <b>Labels Included:</b> {'Yes ✅' if batch_y is not None else 'No (Features Only)'}
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
 
     if sample_features is not None:
         # Run inference through InferenceEngine
@@ -509,6 +664,87 @@ if nav_choice == "🔍 Live Sample Inspector":
                     analyst_notes="Logged from Live Sample Inspector.",
                 )
                 st.success(f"Logged alert #{new_id} to SQLite database!")
+
+        # ─── BATCH EVALUATION ACCORDION (If multi-sample dataset loaded) ───
+        if batch_X is not None and len(batch_X) > 1:
+            st.markdown("---")
+            with st.expander(f"⚡ Batch Evaluate Current Dataset ({len(batch_X)} Samples)", expanded=True):
+                st.markdown(f"Execute real-time batch classification across all **{len(batch_X)}** samples in this dataset using `{engine.algorithm}`.")
+                
+                if st.button("🚀 Run Batch Evaluation on Entire Dataset", key="btn_run_batch_tab1", use_container_width=True):
+                    with st.spinner("Classifying all samples in dataset..."):
+                        t0_batch = time.perf_counter()
+                        raw_probs = engine.model.predict_proba(batch_X)[:, 1]
+                        batch_preds = (raw_probs >= engine.operating_threshold).astype(int)
+                        total_ms = (time.perf_counter() - t0_batch) * 1000.0
+                        
+                        ran_count = int(np.sum(batch_preds == 1))
+                        good_count = int(np.sum(batch_preds == 0))
+                        
+                        m1, m2, m3, m4 = st.columns(4)
+                        m1.metric("Total Samples", len(batch_X))
+                        m2.metric("Detected Ransomware", f"{ran_count} ({ran_count/len(batch_X)*100:.1f}%)")
+                        m3.metric("Detected Goodware", f"{good_count} ({good_count/len(batch_X)*100:.1f}%)")
+                        m4.metric("Avg Latency", f"{total_ms/len(batch_X):.3f} ms/sample")
+                        
+                        if batch_y is not None:
+                            from sklearn.metrics import balanced_accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
+                            bal_acc = balanced_accuracy_score(batch_y, batch_preds)
+                            prec = precision_score(batch_y, batch_preds, zero_division=0)
+                            rec = recall_score(batch_y, batch_preds, zero_division=0)
+                            f1 = f1_score(batch_y, batch_preds, zero_division=0)
+                            cm = confusion_matrix(batch_y, batch_preds)
+                            tn, fp, fn, tp = cm.ravel() if cm.shape == (2, 2) else (0, 0, 0, 0)
+                            fpr = (fp / (fp + tn) * 100) if (fp + tn) > 0 else 0.0
+                            fnr = (fn / (fn + tp) * 100) if (fn + tp) > 0 else 0.0
+                            
+                            st.markdown("#### 🎯 Ground Truth Validation & Accuracy")
+                            g1, g2, g3, g4, g5 = st.columns(5)
+                            g1.metric("Balanced Accuracy", f"{bal_acc*100:.2f}%")
+                            g2.metric("Precision", f"{prec*100:.2f}%")
+                            g3.metric("Recall", f"{rec*100:.2f}%")
+                            g4.metric("FPR (False Alarms)", f"{fpr:.2f}%")
+                            g5.metric("FNR (Missed)", f"{fnr:.2f}%")
+                            
+                            # Plot Confusion Matrix
+                            fig_cm = go.Figure(data=go.Heatmap(
+                                z=[[tn, fp], [fn, tp]],
+                                x=["Predicted Benign", "Predicted Ransomware"],
+                                y=["Actual Benign", "Actual Ransomware"],
+                                colorscale=[[0, "#1e293b"], [0.5, "#3b82f6"], [1, "#10b981"]],
+                                text=[[f"TN: {tn}", f"FP: {fp}"], [f"FN: {fn}", f"TP: {tp}"]],
+                                texttemplate="%{text}",
+                                textfont={"size": 16, "family": "JetBrains Mono"},
+                            ))
+                            fig_cm.update_layout(
+                                title=f"Confusion Matrix (N = {len(batch_X)})",
+                                height=300,
+                                plot_bgcolor="rgba(0,0,0,0)",
+                                paper_bgcolor="rgba(0,0,0,0)",
+                                font_color="#cbd5e1",
+                                margin=dict(l=10, r=10, t=40, b=10),
+                            )
+                            st.plotly_chart(fig_cm, use_container_width=True)
+                            
+                        # Results DataFrame
+                        df_res = pd.DataFrame({
+                            "Sample ID": batch_ids,
+                            "Verdict": ["Ransomware" if p == 1 else "Goodware" for p in batch_preds],
+                            "Threat Probability": np.round(raw_probs, 4),
+                        })
+                        if batch_y is not None:
+                            df_res["Ground Truth"] = ["Ransomware" if y == 1 else "Goodware" for y in batch_y]
+                            df_res["Match"] = np.where(batch_preds == batch_y, "✅ Correct", "⚠️ Misclassified")
+                            
+                        st.dataframe(df_res, use_container_width=True, height=260)
+                        
+                        csv_data = df_res.to_csv(index=False).encode('utf-8')
+                        st.download_button(
+                            "📥 Download Batch Predictions CSV",
+                            data=csv_data,
+                            file_name=f"dataset_predictions_{int(time.time())}.csv",
+                            mime="text/csv",
+                        )
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -1291,4 +1527,257 @@ elif nav_choice == "🔬 Model Variations & Parameter Analytics":
         """,
         unsafe_allow_html=True,
     )
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# TAB 6: DATASETS CATALOG & LIVE BATCH EVALUATOR
+# ─────────────────────────────────────────────────────────────────────────────
+elif nav_choice == "📁 Datasets Catalog & Batch Evaluator":
+    st.title("📁 Master Dataset Catalog & Batch Evaluator")
+    st.markdown(
+        "Directly explore, verify, inspect, and evaluate all datasets in the repository (`datasets/` and `data/raw/mlran/`). "
+        "Select any dataset file or upload your own, inspect its metadata and schema, and run live classification with any trained model."
+    )
+
+    # ─── Top KPI Strip ───
+    d1, d2, d3, d4 = st.columns(4)
+    d1.markdown("""<div class="metric-card"><div class="metric-label">Holdout Test Set</div><div class="metric-value" style="color: #10b981;">975</div><div style="font-size: 0.75rem; color: #94a3b8;">483 RFE Features (Latest 20%)</div></div>""", unsafe_allow_html=True)
+    d2.markdown("""<div class="metric-card"><div class="metric-label">Training Repository</div><div class="metric-value" style="color: #38bdf8;">3,905</div><div style="font-size: 0.75rem; color: #94a3b8;">Earliest 80% Temporal Split</div></div>""", unsafe_allow_html=True)
+    d3.markdown("""<div class="metric-card"><div class="metric-label">Goodware Metadata</div><div class="metric-value" style="color: #f59e0b;">2,550</div><div style="font-size: 0.75rem; color: #94a3b8;">Titles, MD5s, Software Specs</div></div>""", unsafe_allow_html=True)
+    d4.markdown("""<div class="metric-card"><div class="metric-label">Ransomware Families</div><div class="metric-value" style="color: #a855f7;">64 <span style="font-size: 0.9rem; color: #94a3b8;">strains</span></div><div style="font-size: 0.75rem; color: #94a3b8;">Locky, Cerber, WannaCry, GandCrab...</div></div>""", unsafe_allow_html=True)
+
+    st.markdown("---")
+
+    catalog_tab1, catalog_tab2 = st.tabs([
+        "📊 Interactive Dataset Evaluator",
+        "📂 Repository Manifest & Integrity Catalog",
+    ])
+
+    # ─── SUB-TAB 1: INTERACTIVE DATASET EVALUATOR ───
+    with catalog_tab1:
+        st.subheader("Interactive Dataset Ingestion & Evaluation")
+        st.markdown(
+            "Select an existing dataset from the repository or upload a custom CSV file. "
+            "The evaluator auto-detects schemas, extracts metadata and ground truth, and runs live inference using your model of choice."
+        )
+
+        col_source, col_model = st.columns([1, 1])
+
+        with col_source:
+            st.markdown("##### 1. Select Dataset Source")
+            ds_source_mode = st.radio(
+                "Dataset Source:",
+                ["Repository Catalog", "Upload External CSV"],
+                horizontal=True,
+                key="ds_eval_mode",
+            )
+
+            ds_df = None
+            ds_name = ""
+
+            if ds_source_mode == "Repository Catalog":
+                cat_files = {
+                    "Quick Test Batch (50 Samples — 25 Ran / 25 Good)": "datasets/samples/sample_test_batch_50.csv",
+                    "MLRan Holdout Test Set (975 Samples × 483 Features)": "data/raw/mlran/MLRan_X_test_RFE.csv",
+                    "MLRan Training Set (3,905 Samples × 483 Features)": "data/raw/mlran/MLRan_X_train_RFE.csv",
+                    "Single Ransomware Vector (Pure 483 Features)": "datasets/samples/pure_features_ransomware.csv",
+                    "Single Goodware Vector (Pure 483 Features)": "datasets/samples/pure_features_goodware.csv",
+                }
+                selected_cat = st.selectbox("Choose Repository Dataset:", list(cat_files.keys()))
+                cat_path = PROJECT_ROOT / cat_files[selected_cat]
+                ds_name = cat_path.name
+                if cat_path.exists():
+                    ds_df = pd.read_csv(cat_path)
+            else:
+                up_file = st.file_uploader(
+                    "Upload Dataset CSV (483 or 487 columns):",
+                    type=["csv"],
+                    key="ds_upload_tab6",
+                )
+                if up_file is not None:
+                    ds_df = pd.read_csv(up_file)
+                    ds_name = up_file.name
+
+        with col_model:
+            st.markdown("##### 2. Evaluation Model & Operating Point")
+            model_options = {
+                "Logistic Regression (L2) — Champion (98.18% BalAcc)": "models/logistic_regression__l2__liblinear_.joblib",
+                "LightGBM (100 Trees, lr=0.1) — (97.48% BalAcc)": "models/lightgbm_test.joblib",
+                "Extra Trees (100 Trees, depth=20) — (97.18% BalAcc)": "models/extra_test.joblib",
+                "Linear SVM (LinearSVC) — (97.10% BalAcc)": "models/linear_test.joblib",
+                "Random Forest (100 Trees) — (97.07% BalAcc)": "models/random_test.joblib",
+                "MLP (64-Hidden Neural Net) — (97.35% BalAcc)": "models/mlp__64_hidden__sklearn_.joblib",
+                "Decision Tree (Depth 15) — (94.18% BalAcc)": "models/decision_test.joblib",
+            }
+            chosen_model_name = st.selectbox("Select Classification Model:", list(model_options.keys()))
+            eval_threshold = st.slider("Operating Decision Threshold (theta):", min_value=0.10, max_value=0.90, value=0.50, step=0.05)
+
+        if ds_df is not None:
+            X_eval, ids_eval, y_eval, fams_eval = parse_dataset_input(ds_df)
+            
+            st.markdown(
+                f"""
+                <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid #10b981; border-radius: 8px; padding: 12px 18px; margin: 12px 0;">
+                    <b>Dataset Status:</b> Loaded <code>{ds_name}</code> · <b>{len(ids_eval)}</b> Samples · <b>{X_eval.shape[1]}</b> Features Detected · 
+                    <b>Ground Truth:</b> {'✅ Present in Dataset' if y_eval is not None else '⚠️ Unlabeled (Features Only)'}
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+            # Preview Dataset Table
+            with st.expander(f"👁️ Preview Dataset Table (First 20 of {len(ds_df)} rows)", expanded=False):
+                st.dataframe(ds_df.head(20), use_container_width=True)
+
+            # Run Evaluation Button
+            if st.button("🚀 Run Full Batch Evaluation on Dataset", key="btn_eval_tab6", use_container_width=True):
+                with st.spinner(f"Evaluating {len(X_eval)} samples with {chosen_model_name}..."):
+                    model_path = PROJECT_ROOT / model_options[chosen_model_name]
+                    if not model_path.exists():
+                        st.error(f"Model file not found: {model_path}")
+                    else:
+                        m_eval = joblib.load(model_path)
+                        t0 = time.perf_counter()
+                        if hasattr(m_eval, "predict_proba"):
+                            probs = m_eval.predict_proba(X_eval)[:, 1]
+                        elif hasattr(m_eval, "decision_function"):
+                            dfunc = m_eval.decision_function(X_eval)
+                            probs = 1.0 / (1.0 + np.exp(-dfunc))
+                        else:
+                            probs = m_eval.predict(X_eval).astype(float)
+                        
+                        elapsed_total_ms = (time.perf_counter() - t0) * 1000.0
+                        preds = (probs >= eval_threshold).astype(int)
+                        
+                        ran_cnt = int(np.sum(preds == 1))
+                        good_cnt = int(np.sum(preds == 0))
+                        
+                        st.markdown("### 📈 Evaluation Summary & Executive Metrics")
+                        k1, k2, k3, k4 = st.columns(4)
+                        k1.metric("Samples Processed", len(X_eval))
+                        k2.metric("Ransomware Flagged", f"{ran_cnt} ({ran_cnt/len(X_eval)*100:.1f}%)")
+                        k3.metric("Benign Classified", f"{good_cnt} ({good_cnt/len(X_eval)*100:.1f}%)")
+                        k4.metric("Avg Latency", f"{elapsed_total_ms/len(X_eval):.3f} ms/sample")
+                        
+                        if y_eval is not None:
+                            from sklearn.metrics import balanced_accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
+                            bal_acc = balanced_accuracy_score(y_eval, preds)
+                            prec = precision_score(y_eval, preds, zero_division=0)
+                            rec = recall_score(y_eval, preds, zero_division=0)
+                            f1 = f1_score(y_eval, preds, zero_division=0)
+                            cm = confusion_matrix(y_eval, preds)
+                            tn, fp, fn, tp = cm.ravel() if cm.shape == (2, 2) else (0, 0, 0, 0)
+                            fpr = (fp / (fp + tn) * 100) if (fp + tn) > 0 else 0.0
+                            fnr = (fn / (fn + tp) * 100) if (fn + tp) > 0 else 0.0
+                            
+                            st.markdown("#### 🎯 Ground Truth Discrimination Metrics")
+                            m1, m2, m3, m4, m5 = st.columns(5)
+                            m1.metric("Balanced Accuracy", f"{bal_acc*100:.2f}%")
+                            m2.metric("Precision", f"{prec*100:.2f}%")
+                            m3.metric("Recall (Catch Rate)", f"{rec*100:.2f}%")
+                            m4.metric("FPR (False Alarms)", f"{fpr:.2f}%")
+                            m5.metric("FNR (Missed)", f"{fnr:.2f}%")
+                            
+                            c_cm, c_hist = st.columns(2)
+                            with c_cm:
+                                fig_cm = go.Figure(data=go.Heatmap(
+                                    z=[[tn, fp], [fn, tp]],
+                                    x=["Predicted Benign", "Predicted Ransomware"],
+                                    y=["Actual Benign", "Actual Ransomware"],
+                                    colorscale=[[0, "#1e293b"], [0.5, "#3b82f6"], [1, "#10b981"]],
+                                    text=[[f"TN: {tn}", f"FP: {fp}"], [f"FN: {fn}", f"TP: {tp}"]],
+                                    texttemplate="%{text}",
+                                    textfont={"size": 15, "family": "JetBrains Mono"},
+                                ))
+                                fig_cm.update_layout(
+                                    title=f"Confusion Matrix (N = {len(X_eval)})",
+                                    height=300, plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
+                                    font_color="#cbd5e1", margin=dict(l=10, r=10, t=40, b=10),
+                                )
+                                st.plotly_chart(fig_cm, use_container_width=True)
+                                
+                            with c_hist:
+                                fig_hist = go.Figure()
+                                fig_hist.add_trace(go.Histogram(
+                                    x=probs[y_eval == 0], name="Benign Ground Truth",
+                                    marker_color="rgba(16, 185, 129, 0.7)", nbinsx=25
+                                ))
+                                fig_hist.add_trace(go.Histogram(
+                                    x=probs[y_eval == 1], name="Ransomware Ground Truth",
+                                    marker_color="rgba(239, 68, 68, 0.7)", nbinsx=25
+                                ))
+                                fig_hist.add_vline(x=eval_threshold, line_dash="dash", line_color="#f59e0b", annotation_text=f"Threshold ({eval_threshold:.2f})")
+                                fig_hist.update_layout(
+                                    title="Score Separation Distribution",
+                                    barmode="overlay", height=300,
+                                    plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
+                                    font_color="#cbd5e1", margin=dict(l=10, r=10, t=40, b=10),
+                                )
+                                st.plotly_chart(fig_hist, use_container_width=True)
+
+                        # Detailed predictions table
+                        st.markdown("#### 📋 Sample-Level Classification Records")
+                        df_out = pd.DataFrame({
+                            "Sample ID": ids_eval,
+                            "Verdict": ["Ransomware" if p == 1 else "Goodware" for p in preds],
+                            "Threat Probability": np.round(probs, 4),
+                        })
+                        if y_eval is not None:
+                            df_out["Ground Truth"] = ["Ransomware" if y == 1 else "Goodware" for y in y_eval]
+                            df_out["Status"] = np.where(preds == y_eval, "✅ Correct", "⚠️ Misclassified")
+                            
+                        filter_status = st.selectbox("Filter Sample View:", ["All Records", "Misclassifications Only", "Only Ransomware", "Only Goodware"])
+                        if filter_status == "Misclassifications Only" and "Status" in df_out.columns:
+                            df_display = df_out[df_out["Status"] == "⚠️ Misclassified"]
+                        elif filter_status == "Only Ransomware":
+                            df_display = df_out[df_out["Verdict"] == "Ransomware"]
+                        elif filter_status == "Only Goodware":
+                            df_display = df_out[df_out["Verdict"] == "Goodware"]
+                        else:
+                            df_display = df_out
+                            
+                        st.dataframe(df_display, use_container_width=True, height=280)
+                        
+                        csv_exp = df_out.to_csv(index=False).encode('utf-8')
+                        st.download_button(
+                            "📥 Download Evaluated Dataset Predictions (CSV)",
+                            data=csv_exp,
+                            file_name=f"evaluated_{ds_name}_{int(time.time())}.csv",
+                            mime="text/csv",
+                        )
+
+    # ─── SUB-TAB 2: REPOSITORY MANIFEST & INTEGRITY ───
+    with catalog_tab2:
+        st.subheader("Repository Dataset Manifest & SHA256 Integrity Catalog")
+        st.markdown(
+            "Every dataset artifact in `datasets/` and `data/raw/mlran/` is indexed with immutable SHA256 cryptographic hashes, "
+            "row counts, feature dimensions, and upstream provenance according to project guidelines."
+        )
+
+        manifest_path = PROJECT_ROOT / "datasets" / "dataset_manifest.json"
+        if manifest_path.exists():
+            with open(manifest_path, "r", encoding="utf-8") as f:
+                manifest_data = json.load(f)
+            
+            mlran_files = manifest_data.get("data_sources", {}).get("mlran", {}).get("files", [])
+            df_manifest = pd.DataFrame(mlran_files)
+            
+            if not df_manifest.empty:
+                df_manifest["Size (KB)"] = (df_manifest["size_bytes"] / 1024).round(1)
+                st.dataframe(
+                    df_manifest[["filename", "relative_path", "Size (KB)", "n_rows", "n_cols", "sha256", "format"]],
+                    use_container_width=True,
+                    column_config={
+                        "filename": "Filename",
+                        "relative_path": "Path",
+                        "Size (KB)": st.column_config.NumberColumn("Size (KB)", format="%.1f KB"),
+                        "n_rows": st.column_config.NumberColumn("Rows", format="%d"),
+                        "n_cols": st.column_config.NumberColumn("Columns", format="%d"),
+                        "sha256": "SHA256 Checksum",
+                        "format": "Format",
+                    }
+                )
+        else:
+            st.info("Dataset manifest not generated yet. Run `python scripts/organize_datasets.py`.")
+
 
