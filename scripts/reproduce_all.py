@@ -21,7 +21,7 @@ def generate_master_tables(output_path: str = "reports/final_tables.md") -> None
     out_file = Path(output_path)
     out_file.parent.mkdir(parents=True, exist_ok=True)
 
-    content = """# Master Experiment Results & Reproducibility Tables (T-P9-01)
+    content = r"""# Master Experiment Results & Reproducibility Tables (T-P9-01)
 
 **Project:** Early Ransomware Detection with Machine Learning + Explainable Dashboard  
 **Dataset Reference:** MLRan (JNCA 2026) & RanSMAP (CC BY-ND 4.0)  

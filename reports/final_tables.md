@@ -51,10 +51,10 @@ Evaluated across **1,546 sliding windows** from 14 real executions (Conti, LockB
 
 | Strategy | Rule Parameters | Ransomware Catch Rate | Median Time-to-Detection (TTD) | Detect@20s | False Alarms / Hour | Goodware Execution FPR | Mean Disk Data Written Before Alert |
 |---|---|---|---|---|---|---|---|
-| **Raw Window Voting** | $	heta = 0.50$ | 100% (5/5) | 16.0 s | 100.0% | 16.84 FA/hr | 66.7% | 12.97 MB |
-| **EWMA Smoothing** | $lpha = 0.3, 	heta = 0.50$ | 100% (5/5) | **18.0 s** | 80.0% | **2.81 FA/hr** | 11.1% | 28.93 MB |
-| **EWMA Conservative** | $lpha = 0.2, 	heta = 0.70$ | 100% (5/5) | **21.0 s** | 20.0% | **0.00 FA/hr** | **0.0%** | 55.75 MB |
-| **$k$-of-$n$ Window Consensus** | $k=2, n=3, 	heta=0.50$ | 100% (5/5) | 17.0 s | 80.0% | 11.23 FA/hr | 44.4% | 24.76 MB |
+| **Raw Window Voting** | $\theta = 0.50$ | 100% (5/5) | 16.0 s | 100.0% | 16.84 FA/hr | 66.7% | 12.97 MB |
+| **EWMA Smoothing** | $\alpha = 0.3, \theta = 0.50$ | 100% (5/5) | **18.0 s** | 80.0% | **2.81 FA/hr** | 11.1% | 28.93 MB |
+| **EWMA Conservative** | $\alpha = 0.2, \theta = 0.70$ | 100% (5/5) | **21.0 s** | 20.0% | **0.00 FA/hr** | **0.0%** | 55.75 MB |
+| **$k$-of-$n$ Window Consensus** | $k=2, n=3, \theta=0.50$ | 100% (5/5) | 17.0 s | 80.0% | 11.23 FA/hr | 44.4% | 24.76 MB |
 | **Two-Stage Architecture (D-005)** | Stage 1 EWMA + Stage 2 Confirm | **100% (5/5)** | **18.0 s** | 80.0% | **0.00 FA/hr** | **0.0% (AESCrypt: 0%)** | 28.93 MB |
 
 ---
