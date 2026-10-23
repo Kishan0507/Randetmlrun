@@ -3,36 +3,40 @@
 Last updated: 2026-10-23 by Kishan (Member 1, Project Lead) / Antigravity
 
 ## Done
-- **Phase 0 through 10 (100% complete)**: Full project lifecycle complete (baseline reproduction, multi-model benchmark, chronological split, concept drift, RanSMAP early detection streaming, explainability service, FastAPI backend, 6-tab Streamlit dashboard, master reports, stacking ensemble, active learning, canary honeyfiles, and ONNX export).
-- **External Dataset Benchmark (APIMDS) & Comprehensive Explainer (`explain.md`)**:
-  - Ingested and categorized 23,146 execution traces (17,268 labeled: 13,684 other malware, 3,137 benign, 447 ransomware) from `data/raw/malware_API_dataset.csv`.
-  - Built loader `src/data/load_apimds.py` and unit test `tests/test_apimds.py` (3/3 passing, full test suite: **72/72 passing green**).
-  - Executed benchmark `scripts/benchmark_apimds.py` logging experiment `E-080` (97.87% BalAcc on general malware, 96.43% BalAcc on targeted ransomware).
-- **Patch P-004 (Frontend Dataset Ingestion, Batch Evaluator & Windows Fix)**:
-  - **Fixed RanSMAP Windows Access Violation**: Replaced problematic LightGBM C-library window fitting with a robust Random Forest pipeline (`make_window_pipeline('rf')`) with Logistic Regression fallback, resolving `OSError: exception: access violation reading 0x0000000000000000`.
-  - **Fixed Missing Import**: Added `import json` to `dashboard/app.py`.
-  - **Intelligent Dataset Input Parser**: Created `parse_dataset_input()` capable of reading 483-feature CSVs, 487-column MLRan full datasets, and arbitrary header order with automatic metadata/label separation.
-  - **Streamlit Tab 1 Enhancements**: Added repository catalog dataset picker, sample selector, and an expandable interactive Batch Evaluation suite with real-time confusion matrix and predictions CSV export.
-  - **Streamlit Tab 6 ("📁 Datasets Catalog & Batch Evaluator")**: Added master dataset explorer, multi-model batch evaluation suite across 7 algorithms, decision threshold tuning, confusion matrix heatmap, and score distribution histogram.
-  - **Client-Side Live Dataset Evaluator (`dashboard/analytics.html`)**: Added in-browser CSV parsing, 50-sample quick benchmark, and real-time classification using embedded calibrated Logistic Regression L2 model weights (`dashboard/lr_weights.json`).
-  - **Dataset Organization**: Populated `datasets/mlran_483_rfe/` with all MLRan datasets and generated sample test batches in `datasets/samples/`.
-- **Verification**: Python 3.12 syntax check passed with 0 errors; batch evaluation on 975 test samples verified (98.18% BalAcc, [[498, 12], [6, 459]]); Streamlit live on `http://localhost:8501`; HTML analytics live on `http://localhost:8080/dashboard/analytics.html`.
+- **Cross-Dataset ML Benchmark (Patch P-005)**:
+  - Ingested and profiled all datasets in `datasets/`:
+    1. `Ransomware.csv`: 138,047 samples x 54 PE header features (Binary: Legitimate vs Ransomware)
+    2. `data_file.csv`: 62,485 samples x 15 PE & Bitcoin features (Binary: Benign vs Ransomware)
+    3. `ransom.csv`: 21,752 samples x 73 PE features (Multi-class: 27 malware families)
+    4. `ransomset-multiclass-dataset.csv`: 19,234 samples x 239 API call features (Multi-class: 7 families)
+    5. `MLRan Baseline`: 4,880 samples x 483 behavioral RFE features (Binary: Goodware vs Ransomware)
+  - Evaluated **>246,400 samples** across 7 standard ML models: Logistic Regression (L2, lbfgs), Random Forest, Extra Trees, Decision Tree, Linear SVM, MLP (64-Hidden), and Gradient Boosting using standard parameters and 80/20 stratified splits (seed=42).
+  - Saved 100% complete benchmark metrics (Balanced Accuracy, Precision, Recall, Macro F1, FPR, FNR, Latency per sample, Train Time, Confusion Matrices) to `datasets/benchmark_results.json`.
+  - Added dedicated navigation section in `dashboard/app.py`: `"🌐 Cross-Dataset Benchmark & Model Comparison"` with 4 interactive sub-tabs:
+    1. Multi-Model Comparison & Heatmap matrix across metrics (BalAcc, F1, Recall, Precision, Latency, Train Time) and grouped Plotly bar charts.
+    2. Dataset Deep-Dive with multi-dimensional radar chart, Pareto latency vs accuracy curve, full metrics table, and confusion matrix explorer.
+    3. Feature Paradigms & Architectural Insights contrasting static PE headers, dynamic API counts, Bitcoin indicators, and behavioral RFE vectors.
+    4. Benchmark Artifacts & Data Export with download buttons for JSON and CSV.
+- **Previous Patches (P-001 through P-004)**:
+  - Fixed Windows LightGBM C-library access violation via Random Forest window pipeline.
+  - Added frontend dataset ingestion and batch evaluator in Tab 6 and Tab 1.
+  - Added Model Variations & Parameter Analytics (Tab 5) and standalone `dashboard/analytics.html`.
+  - Completed APIMDS external dataset transferability study (E-080).
 
 ## In progress
-- Nothing. All patches P-001 through P-004 and tasks T-P10-08 are 100% complete, verified, and pushed to GitHub.
+- Nothing. All tasks and patches (P-001 through P-005) are complete and verified.
 
 ## Next step (do this first)
-- Access the running interactive dashboards:
-  - Streamlit: `http://localhost:8501` (or `streamlit run dashboard/app.py`)
-  - Standalone HTML Analytics: `http://localhost:8080/dashboard/analytics.html` (or `Start-Process dashboard/analytics.html`)
-- Test dataset evaluations:
-  - In Streamlit Tab 1, pick "Select from Project Datasets Catalog" -> "Quick Test Batch (50 Samples)" and click "Run Batch Evaluation on Entire Dataset".
-  - In Streamlit Tab 6, select any dataset from `datasets/` and run multi-model batch evaluation.
-  - In `dashboard/analytics.html`, navigate to Tab 6 ("Dataset Overview") and click "Quick 50-Sample Benchmark" or upload any CSV.
+- Open Streamlit dashboard: `http://localhost:8501`
+- Select `"🌐 Cross-Dataset Benchmark & Model Comparison"` from the sidebar navigation to view:
+  - Cross-dataset heatmaps comparing all 7 models across the 5 datasets.
+  - Interactive metric selector (Balanced Accuracy, F1, Recall, Precision, Latency, Train Time).
+  - Dataset deep-dive with radar charts, Pareto frontiers, and confusion matrices.
+  - Downloadable benchmark artifacts (`benchmark_results.json` and `benchmark_leaderboard.csv`).
 
 ## Open questions for the user / team
-- None. Everything requested by Kishan (Member 1) and the proctor is fully implemented, verified, and pushed to remote origin.
+- None. All requested datasets have been analyzed with standard parameters, compared across models, and displayed in the dashboard.
 
 ## Gotchas
-- The standalone HTML dashboard (`dashboard/analytics.html`) requires no Python runtime and can be opened directly in any modern browser.
-- Streamlit Tab 2 uses Random Forest for sliding window telemetry classification, completely eliminating Windows LightGBM C-library access violations.
+- When performing multi-class classification on datasets with 7 to 27 classes (`ransom.csv`, `ransomset-multiclass`), `LogisticRegression` uses `solver="lbfgs"` to support multinomial cross-entropy loss without throwing `liblinear` errors.
+- In `MLRan Baseline`, binary ground truth uses `sample_type` (0=Goodware, 1=Ransomware), achieving the project's champion 98.17% MLP / 97.77% LR balanced accuracy.

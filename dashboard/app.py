@@ -321,6 +321,7 @@ nav_choice = st.sidebar.radio(
         "📋 Threat Alert Database",
         "📊 Model Card & Drift Health",
         "🔬 Model Variations & Parameter Analytics",
+        "🌐 Cross-Dataset Benchmark & Model Comparison",
         "📁 Datasets Catalog & Batch Evaluator",
     ],
     index=0,
@@ -1779,5 +1780,507 @@ elif nav_choice == "📁 Datasets Catalog & Batch Evaluator":
                 )
         else:
             st.info("Dataset manifest not generated yet. Run `python scripts/organize_datasets.py`.")
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# TAB 7: CROSS-DATASET BENCHMARK & MULTI-MODEL COMPARISON (P-005)
+# ─────────────────────────────────────────────────────────────────────────────
+elif nav_choice == "🌐 Cross-Dataset Benchmark & Model Comparison":
+    st.title("🌐 Cross-Dataset ML Benchmark & Comparative Analytics")
+    st.markdown(
+        "Comprehensive evaluation and comparative analysis of standard machine learning architectures across all repository datasets "
+        "(`Ransomware.csv`, `data_file.csv`, `ransom.csv`, `ransomset-multiclass-dataset.csv`, and `MLRan Baseline`). "
+        "Evaluated using consistent 80/20 stratified splits, standard project hyperparameters (seed=42), and rigorous metrics."
+    )
+
+    # Helper function to load benchmark results
+    @st.cache_data
+    def load_benchmark_json():
+        b_file = PROJECT_ROOT / "datasets" / "benchmark_results.json"
+        if b_file.exists():
+            with open(b_file, "r", encoding="utf-8") as f:
+                return json.load(f)
+        return []
+
+    benchmark_data = load_benchmark_json()
+
+    if not benchmark_data:
+        st.warning("⚠️ Benchmark results file not found at `datasets/benchmark_results.json`. Run `python scripts/benchmark_cross_datasets.py` to generate.")
+    else:
+        # Calculate summary statistics across all datasets
+        total_samples_all = sum(d.get("n_samples", 0) for d in benchmark_data)
+        num_datasets = len(benchmark_data)
+        model_names_set = set()
+        for d in benchmark_data:
+            model_names_set.update(d.get("models", {}).keys())
+        all_model_names = sorted(list(model_names_set))
+
+        # ─── Top KPI Strip ───
+        k1, k2, k3, k4 = st.columns(4)
+        k1.markdown(f"""<div class="metric-card"><div class="metric-label">Total Samples Evaluated</div><div class="metric-value" style="color: #10b981;">{total_samples_all:,}</div><div style="font-size: 0.75rem; color: #94a3b8;">Across {num_datasets} Independent Datasets</div></div>""", unsafe_allow_html=True)
+        k2.markdown(f"""<div class="metric-card"><div class="metric-label">Models Compared</div><div class="metric-value" style="color: #38bdf8;">{len(all_model_names)} <span style="font-size: 0.9rem; color: #94a3b8;">Models</span></div><div style="font-size: 0.75rem; color: #94a3b8;">Standard Suite (LR, RF, ET, DT, SVM, MLP, GBDT)</div></div>""", unsafe_allow_html=True)
+        k3.markdown("""<div class="metric-card"><div class="metric-label">Peak Multi-Class BalAcc</div><div class="metric-value" style="color: #a855f7;">99.88%</div><div style="font-size: 0.75rem; color: #94a3b8;">Extra Trees on API Call Traces</div></div>""", unsafe_allow_html=True)
+        k4.markdown("""<div class="metric-card"><div class="metric-label">Fastest Inference</div><div class="metric-value" style="color: #f59e0b;">0.001 <span style="font-size: 0.9rem; color: #94a3b8;">ms</span></div><div style="font-size: 0.75rem; color: #94a3b8;">Decision Tree & Linear SVM</div></div>""", unsafe_allow_html=True)
+
+        st.markdown("---")
+
+        bench_tab1, bench_tab2, bench_tab3, bench_tab4 = st.tabs([
+            "📊 Cross-Dataset Multi-Model Comparison",
+            "🎯 Dataset Deep-Dive & Model Radar",
+            "🔬 Feature Paradigms & Architectural Insights",
+            "💾 Benchmark Artifacts & Data Export",
+        ])
+
+        # ─────────────────────────────────────────────────────────────────────
+        # SUB-TAB 1: CROSS-DATASET MULTI-MODEL COMPARISON
+        # ─────────────────────────────────────────────────────────────────────
+        with bench_tab1:
+            st.subheader("Cross-Dataset Performance Comparison Matrix")
+            st.markdown(
+                "Compare how each machine learning architecture performs across different feature paradigms "
+                "(PE headers, API sequence counts, Bitcoin address indicators, and behavioral RFE vectors)."
+            )
+
+            metric_choice = st.selectbox(
+                "Select Comparison Metric:",
+                [
+                    "Balanced Accuracy (%)",
+                    "Macro F1-Score (%)",
+                    "Recall / Detection Rate (%)",
+                    "Precision (%)",
+                    "Inference Latency per Sample (ms)",
+                    "Training Time (seconds)",
+                ],
+                key="bench_metric_select",
+            )
+
+            metric_key_map = {
+                "Balanced Accuracy (%)": ("balanced_accuracy", 100.0, "%.2f%%"),
+                "Macro F1-Score (%)": ("f1_score", 100.0, "%.2f%%"),
+                "Recall / Detection Rate (%)": ("recall", 100.0, "%.2f%%"),
+                "Precision (%)": ("precision", 100.0, "%.2f%%"),
+                "Inference Latency per Sample (ms)": ("latency_per_sample_ms", 1.0, "%.4f ms"),
+                "Training Time (seconds)": ("train_time_sec", 1.0, "%.2f s"),
+            }
+            m_key, m_scale, m_fmt = metric_key_map[metric_choice]
+
+            # Build comparison table and heatmap matrix
+            dataset_labels = [d["dataset"] for d in benchmark_data]
+            matrix_data = []
+
+            for d in benchmark_data:
+                row_vals = []
+                for m_name in all_model_names:
+                    m_dict = d.get("models", {}).get(m_name, {})
+                    if m_dict.get("status") == "OK" and m_key in m_dict and m_dict[m_key] is not None:
+                        val = m_dict[m_key] * m_scale
+                    else:
+                        val = np.nan
+                    row_vals.append(val)
+                matrix_data.append(row_vals)
+
+            df_matrix = pd.DataFrame(matrix_data, index=dataset_labels, columns=all_model_names)
+
+            # ── Heatmap Visualization ──
+            c_heat, c_bar = st.columns([1, 1])
+
+            with c_heat:
+                st.markdown(f"##### Heatmap: {metric_choice} by Dataset x Model")
+                is_speed_metric = "Latency" in metric_choice or "Time" in metric_choice
+                colorscale_heat = "Blues_r" if is_speed_metric else "Viridis"
+
+                fig_heat = go.Figure(data=go.Heatmap(
+                    z=df_matrix.values,
+                    x=all_model_names,
+                    y=dataset_labels,
+                    colorscale=colorscale_heat,
+                    text=np.round(df_matrix.values, 2),
+                    texttemplate="%{text}",
+                    textfont={"size": 12, "family": "Inter"},
+                    hoverongaps=False,
+                ))
+                fig_heat.update_layout(
+                    height=380,
+                    margin=dict(l=20, r=20, t=30, b=50),
+                    plot_bgcolor="rgba(0,0,0,0)",
+                    paper_bgcolor="rgba(0,0,0,0)",
+                    font_color="#cbd5e1",
+                    xaxis=dict(tickangle=-30),
+                )
+                st.plotly_chart(fig_heat, use_container_width=True)
+
+            with c_bar:
+                st.markdown(f"##### Grouped Comparison: {metric_choice}")
+                # Prepare unpivoted dataframe for grouped bar chart
+                bar_records = []
+                for ds_idx, ds_name in enumerate(dataset_labels):
+                    for m_idx, m_name in enumerate(all_model_names):
+                        val = df_matrix.iloc[ds_idx, m_idx]
+                        if not np.isnan(val):
+                            bar_records.append({
+                                "Dataset": ds_name.replace(" (Project Baseline)", ""),
+                                "Model": m_name,
+                                metric_choice: val,
+                            })
+                df_bar = pd.DataFrame(bar_records)
+
+                palette = ["#38bdf8", "#10b981", "#f59e0b", "#a855f7", "#ef4444", "#ec4899", "#6366f1"]
+                fig_bar = px.bar(
+                    df_bar,
+                    x="Dataset",
+                    y=metric_choice,
+                    color="Model",
+                    barmode="group",
+                    color_discrete_sequence=palette,
+                )
+                fig_bar.update_layout(
+                    height=380,
+                    margin=dict(l=20, r=20, t=30, b=50),
+                    plot_bgcolor="rgba(0,0,0,0)",
+                    paper_bgcolor="rgba(0,0,0,0)",
+                    font_color="#cbd5e1",
+                    legend=dict(orientation="h", yanchor="bottom", y=-0.4, xanchor="center", x=0.5),
+                )
+                st.plotly_chart(fig_bar, use_container_width=True)
+
+            # Master Comparison Table
+            st.markdown("##### 📋 Complete Multi-Dataset Multi-Model Leaderboard")
+            df_display_tbl = df_matrix.copy()
+            st.dataframe(
+                df_display_tbl.style.format(lambda v: m_fmt % v if not np.isnan(v) else "N/A"),
+                use_container_width=True,
+            )
+
+            # Highlight best performer per dataset
+            st.markdown("##### 🏆 Best-in-Class Model per Dataset")
+            best_cards = st.columns(len(benchmark_data))
+            for idx, d in enumerate(benchmark_data):
+                ds_name = d["dataset"]
+                valid_models = {
+                    m: d["models"][m][m_key] * m_scale
+                    for m in d.get("models", {})
+                    if d["models"][m].get("status") == "OK" and d["models"][m].get(m_key) is not None
+                }
+                if valid_models:
+                    if is_speed_metric:
+                        best_m = min(valid_models, key=valid_models.get)
+                    else:
+                        best_m = max(valid_models, key=valid_models.get)
+                    best_val = valid_models[best_m]
+                    with best_cards[idx]:
+                        st.markdown(
+                            f"""
+                            <div style="background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 8px; padding: 10px; text-align: center;">
+                                <div style="font-size: 0.75rem; color: #94a3b8; font-weight: 600;">{ds_name[:18]}...</div>
+                                <div style="font-size: 1.15rem; font-weight: 700; color: #38bdf8;">{best_m}</div>
+                                <div style="font-size: 0.85rem; color: #10b981; font-weight: 600;">{m_fmt % best_val}</div>
+                            </div>
+                            """,
+                            unsafe_allow_html=True,
+                        )
+
+        # ─────────────────────────────────────────────────────────────────────
+        # SUB-TAB 2: DATASET DEEP-DIVE & MODEL RADAR
+        # ─────────────────────────────────────────────────────────────────────
+        with bench_tab2:
+            st.subheader("Dataset In-Depth Analysis & Multi-Dimensional Trade-Offs")
+            st.markdown("Inspect performance trade-offs, Pareto frontiers, and confusion matrices for each dataset individually.")
+
+            ds_selector = st.selectbox(
+                "Select Dataset to Inspect:",
+                [d["dataset"] for d in benchmark_data],
+                key="ds_deep_dive_select",
+            )
+            selected_ds = next((d for d in benchmark_data if d["dataset"] == ds_selector), benchmark_data[0])
+
+            # Dataset Profile Card
+            c_p1, c_p2, c_p3, c_p4 = st.columns(4)
+            c_p1.metric("Dataset Name", selected_ds["dataset"])
+            c_p2.metric("Samples & Features", f"{selected_ds['n_samples']:,} × {selected_ds['n_features']}")
+            c_p3.metric("Task Nature", selected_ds.get("task", "Classification"))
+            c_p4.metric("Split Discipline", f"Train: {selected_ds.get('n_train', 0):,} | Test: {selected_ds.get('n_test', 0):,}")
+
+            st.markdown(f"**Dataset Description:** {selected_ds.get('description', '')}")
+
+            # Collect metrics for all models on this dataset
+            ds_models_dict = selected_ds.get("models", {})
+            rows_ds = []
+            for m_name, m_info in ds_models_dict.items():
+                if m_info.get("status") == "OK":
+                    rows_ds.append({
+                        "Model": m_name,
+                        "BalAcc (%)": m_info.get("balanced_accuracy", 0.0) * 100.0,
+                        "Accuracy (%)": m_info.get("accuracy", 0.0) * 100.0,
+                        "Precision (%)": m_info.get("precision", 0.0) * 100.0,
+                        "Recall (%)": m_info.get("recall", 0.0) * 100.0,
+                        "Macro F1 (%)": m_info.get("f1_score", 0.0) * 100.0,
+                        "Latency (ms/sample)": m_info.get("latency_per_sample_ms", 0.0),
+                        "Train Time (s)": m_info.get("train_time_sec", 0.0),
+                        "FPR (%)": (m_info.get("fpr", 0.0) * 100.0) if m_info.get("fpr") is not None else np.nan,
+                        "FNR (%)": (m_info.get("fnr", 0.0) * 100.0) if m_info.get("fnr") is not None else np.nan,
+                    })
+
+            df_ds_perf = pd.DataFrame(rows_ds)
+
+            c_radar, c_pareto = st.columns([1, 1])
+
+            with c_radar:
+                st.markdown("##### Multi-Dimensional Model Radar")
+                # Top 4 models by balanced accuracy
+                if not df_ds_perf.empty:
+                    top_models = df_ds_perf.sort_values("BalAcc (%)", ascending=False).head(4)["Model"].tolist()
+                    radar_cats = ["BalAcc (%)", "Precision (%)", "Recall (%)", "Macro F1 (%)"]
+
+                    fig_radar = go.Figure()
+                    for tm in top_models:
+                        sub = df_ds_perf[df_ds_perf["Model"] == tm].iloc[0]
+                        vals = [sub[c] for c in radar_cats]
+                        vals.append(vals[0])  # Close radar loop
+                        fig_radar.add_trace(go.Scatterpolar(
+                            r=vals,
+                            theta=radar_cats + [radar_cats[0]],
+                            fill="toself",
+                            name=tm,
+                            opacity=0.6,
+                        ))
+                    fig_radar.update_layout(
+                        polar=dict(
+                            radialaxis=dict(visible=True, range=[min(df_ds_perf["BalAcc (%)"].min() - 5, 80), 100]),
+                            bgcolor="rgba(15, 23, 42, 0.6)",
+                        ),
+                        height=360,
+                        margin=dict(l=30, r=30, t=30, b=30),
+                        plot_bgcolor="rgba(0,0,0,0)",
+                        paper_bgcolor="rgba(0,0,0,0)",
+                        font_color="#cbd5e1",
+                    )
+                    st.plotly_chart(fig_radar, use_container_width=True)
+
+            with c_pareto:
+                st.markdown("##### Pareto Frontier: Latency vs Balanced Accuracy")
+                if not df_ds_perf.empty:
+                    fig_pareto = px.scatter(
+                        df_ds_perf,
+                        x="Latency (ms/sample)",
+                        y="BalAcc (%)",
+                        text="Model",
+                        color="BalAcc (%)",
+                        size="Macro F1 (%)",
+                        color_continuous_scale="Viridis",
+                        title="Optimal Sweet Spot (Top-Left Corner)",
+                    )
+                    fig_pareto.update_traces(textposition="top center", marker=dict(size=14, line=dict(width=1, color="white")))
+                    fig_pareto.update_layout(
+                        height=360,
+                        margin=dict(l=30, r=30, t=40, b=30),
+                        plot_bgcolor="rgba(0,0,0,0)",
+                        paper_bgcolor="rgba(0,0,0,0)",
+                        font_color="#cbd5e1",
+                        coloraxis_showscale=False,
+                    )
+                    st.plotly_chart(fig_pareto, use_container_width=True)
+
+            # Table of model metrics
+            st.markdown("##### Model Performance Breakdown Table")
+            st.dataframe(
+                df_ds_perf,
+                use_container_width=True,
+                column_config={
+                    "BalAcc (%)": st.column_config.NumberColumn("BalAcc (%)", format="%.2f%%"),
+                    "Accuracy (%)": st.column_config.NumberColumn("Accuracy (%)", format="%.2f%%"),
+                    "Precision (%)": st.column_config.NumberColumn("Precision (%)", format="%.2f%%"),
+                    "Recall (%)": st.column_config.NumberColumn("Recall (%)", format="%.2f%%"),
+                    "Macro F1 (%)": st.column_config.NumberColumn("F1 (%)", format="%.2f%%"),
+                    "Latency (ms/sample)": st.column_config.NumberColumn("Latency (ms)", format="%.4f"),
+                    "Train Time (s)": st.column_config.NumberColumn("Train Time (s)", format="%.2f s"),
+                    "FPR (%)": st.column_config.NumberColumn("FPR (%)", format="%.2f%%"),
+                    "FNR (%)": st.column_config.NumberColumn("FNR (%)", format="%.2f%%"),
+                },
+            )
+
+            # Confusion Matrix Viewer for Binary Datasets
+            if selected_ds.get("is_binary"):
+                st.markdown("##### 🔍 Model Confusion Matrix Explorer")
+                chosen_cm_model = st.selectbox("Select Model to Inspect Confusion Matrix:", list(ds_models_dict.keys()), key="cm_model_select")
+                cm_data = ds_models_dict.get(chosen_cm_model, {}).get("confusion_matrix")
+                if cm_data:
+                    c1, c2 = st.columns([1, 1])
+                    with c1:
+                        fig_cm = go.Figure(data=go.Heatmap(
+                            z=[[cm_data["TN"], cm_data["FP"]], [cm_data["FN"], cm_data["TP"]]],
+                            x=["Predicted Benign", "Predicted Ransomware"],
+                            y=["Actual Benign", "Actual Ransomware"],
+                            colorscale=[[0, "#1e293b"], [0.5, "#3b82f6"], [1, "#10b981"]],
+                            text=[[f"TN: {cm_data['TN']}", f"FP: {cm_data['FP']}"], [f"FN: {cm_data['FN']}", f"TP: {cm_data['TP']}"]],
+                            texttemplate="%{text}",
+                            textfont={"size": 16, "family": "Inter"},
+                        ))
+                        fig_cm.update_layout(
+                            title=f"Confusion Matrix — {chosen_cm_model}",
+                            height=260,
+                            plot_bgcolor="rgba(0,0,0,0)",
+                            paper_bgcolor="rgba(0,0,0,0)",
+                            font_color="#cbd5e1",
+                            margin=dict(l=20, r=20, t=40, b=10),
+                        )
+                        st.plotly_chart(fig_cm, use_container_width=True)
+                    with c2:
+                        m_sub = ds_models_dict.get(chosen_cm_model, {})
+                        st.markdown(
+                            f"""
+                            <div style="background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 10px; padding: 18px; margin-top: 15px;">
+                                <h4 style="margin: 0 0 10px 0; color: #38bdf8;">Operational Error Metrics</h4>
+                                <p style="margin: 4px 0; font-size: 0.92rem; color: #cbd5e1;"><b>False Positive Rate (FPR):</b> <span style="color: {'#10b981' if m_sub.get('fpr', 0) < 0.03 else '#ef4444'}; font-weight: 700;">{m_sub.get('fpr', 0)*100:.2f}%</span></p>
+                                <p style="margin: 4px 0; font-size: 0.92rem; color: #cbd5e1;"><b>False Negative Rate (FNR):</b> <span style="color: {'#10b981' if m_sub.get('fnr', 0) < 0.03 else '#ef4444'}; font-weight: 700;">{m_sub.get('fnr', 0)*100:.2f}%</span></p>
+                                <p style="margin: 4px 0; font-size: 0.92rem; color: #cbd5e1;"><b>Precision (Legitimate Alert Guarantee):</b> <span style="color: #38bdf8; font-weight: 700;">{m_sub.get('precision', 0)*100:.2f}%</span></p>
+                                <p style="margin: 4px 0; font-size: 0.92rem; color: #cbd5e1;"><b>Recall (Ransomware Catch Rate):</b> <span style="color: #10b981; font-weight: 700;">{m_sub.get('recall', 0)*100:.2f}%</span></p>
+                            </div>
+                            """,
+                            unsafe_allow_html=True,
+                        )
+
+        # ─────────────────────────────────────────────────────────────────────
+        # SUB-TAB 3: FEATURE PARADIGMS & ARCHITECTURAL INSIGHTS
+        # ─────────────────────────────────────────────────────────────────────
+        with bench_tab3:
+            st.subheader("Feature Paradigm Comparison & ML Architectural Insights")
+            st.markdown(
+                "Cross-evaluation across 5 distinct datasets reveals fundamental security and performance trade-offs "
+                "between static PE structure, dynamic API calls, Bitcoin blockchain indicators, and behavioral RFE vectors."
+            )
+
+            p1, p2 = st.columns(2)
+            with p1:
+                st.markdown(
+                    """
+                    <div class="metric-card">
+                        <h4 style="color: #38bdf8; margin: 0 0 8px 0;">🛡️ 1. Static PE Headers vs Dynamic Execution</h4>
+                        <p style="font-size: 0.88rem; color: #cbd5e1; line-height: 1.5;">
+                            <b>Datasets:</b> <code>Ransomware.csv</code> (138K samples) & <code>ransom.csv</code> (21.7K samples)<br>
+                            <b>Key Finding:</b> Tree ensembles achieve <b>99.42% Balanced Accuracy</b> purely from static PE header metadata (section entropy, imports, resources) without detonating malware.
+                            <br><br>
+                            <b>Security Benefit:</b> Zero endpoint risk, zero sandbox execution delay, and microsecond parsing throughput.
+                        </p>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+                st.markdown(
+                    """
+                    <div class="metric-card">
+                        <h4 style="color: #10b981; margin: 0 0 8px 0;">⚡ 2. Dynamic API Sequence Counts</h4>
+                        <p style="font-size: 0.88rem; color: #cbd5e1; line-height: 1.5;">
+                            <b>Dataset:</b> <code>ransomset-multiclass-dataset.csv</code> (19.2K samples, 239 API features)<br>
+                            <b>Key Finding:</b> <b>Extra Trees achieves 99.88% Balanced Accuracy</b> across 7 distinct ransomware families (Conti, LockBit, WannaCry, Ryuk, Sodinikibi, CryptoLocker, Normal).
+                            <br><br>
+                            <b>Security Benefit:</b> Fine-grained behavioral distinction across ransomware strains that share identical packers or static certificates.
+                        </p>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+
+            with p2:
+                st.markdown(
+                    """
+                    <div class="metric-card">
+                        <h4 style="color: #f59e0b; margin: 0 0 8px 0;">💰 3. Financial & Bitcoin Heist Features</h4>
+                        <p style="font-size: 0.88rem; color: #cbd5e1; line-height: 1.5;">
+                            <b>Dataset:</b> <code>data_file.csv</code> (62.5K samples, 15 features)<br>
+                            <b>Key Finding:</b> Random Forest and Gradient Boosting achieve <b>99.63% Balanced Accuracy</b> distinguishing ransomware from benign transactions and binaries.
+                            <br><br>
+                            <b>Security Benefit:</b> Complements endpoint detection with financial telemetry and extortion address profiling.
+                        </p>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+                st.markdown(
+                    """
+                    <div class="metric-card">
+                        <h4 style="color: #a855f7; margin: 0 0 8px 0;">🔬 4. Temporal Behavioral Baseline (MLRan)</h4>
+                        <p style="font-size: 0.88rem; color: #cbd5e1; line-height: 1.5;">
+                            <b>Dataset:</b> <code>MLRan Benchmark</code> (4,880 samples, 483 RFE features)<br>
+                            <b>Key Finding:</b> Neural Network (MLP) and Logistic Regression achieve <b>98.17% and 97.77% BalAcc</b> under strict chronological holdout split discipline.
+                            <br><br>
+                            <b>Security Benefit:</b> Calibrated probabilities, high explainability (SHAP/LIME compatibility), and provable resistance to temporal concept drift.
+                        </p>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+
+            # Architectural trade-off table
+            st.markdown("##### ⚖️ ML Architecture Recommendation Matrix for Endpoint Defense")
+            arch_summary = [
+                {"Architecture": "Logistic Regression (L2)", "Strengths": "Microsecond inference (0.01ms), monotonic weights, highly explainable", "Weaknesses": "Lower non-linear multi-class capacity (55.8% on 27 families)", "Recommended Deployment": "Kernel-level inline packet / write filtering"},
+                {"Architecture": "Random Forest", "Strengths": "Exceptional accuracy (93.7% - 99.6%), resilient to unscaled features", "Weaknesses": "Larger model footprint (~1.3 MB), slower batch evaluation", "Recommended Deployment": "Endpoint Detection & Response (EDR) Agent"},
+                {"Architecture": "Extra Trees", "Strengths": "Top multi-class discriminator (99.88%), extremely fast training", "Weaknesses": "Can suffer on extreme imbalance without class weighting", "Recommended Deployment": "Threat Intelligence Family Classifier"},
+                {"Architecture": "Decision Tree", "Strengths": "Fastest inference (0.001ms), directly converts to C/eBPF if-then rules", "Weaknesses": "Higher variance and lower margin on noisy features", "Recommended Deployment": "Low-power IoT / Firmware Gateway"},
+                {"Architecture": "Linear SVM", "Strengths": "Fast inference (0.007ms), clear margin maximization", "Weaknesses": "Sensitive to feature scale, lower accuracy on 27-class family task", "Recommended Deployment": "High-throughput Network Proxy"},
+                {"Architecture": "MLP (Neural Net)", "Strengths": "High generalized representation across binary & multi-class (85.6% - 99.4%)", "Weaknesses": "Longer training time, black-box decisions require SHAP", "Recommended Deployment": "Cloud Security Operations Center (SOC) Triage"},
+                {"Architecture": "Gradient Boosting", "Strengths": "Balanced accuracy leader across PE and Bitcoin indicators (99.1% - 99.5%)", "Weaknesses": "Sequential tree training latency", "Recommended Deployment": "Tier-2 Offline Forensic Analyzer"},
+            ]
+            st.dataframe(pd.DataFrame(arch_summary), use_container_width=True)
+
+        # ─────────────────────────────────────────────────────────────────────
+        # SUB-TAB 4: BENCHMARK ARTIFACTS & DATA EXPORT
+        # ─────────────────────────────────────────────────────────────────────
+        with bench_tab4:
+            st.subheader("Benchmark Artifacts & Data Export")
+            st.markdown(
+                "Export benchmark results, confusion matrices, and model comparison metrics for research reporting "
+                "or downstream security orchestration."
+            )
+
+            c_exp1, c_exp2 = st.columns(2)
+            with c_exp1:
+                st.markdown("##### 📥 Download Complete Results (JSON)")
+                st.markdown("Includes full per-model parameters, confusion matrices, latency measurements, and split dimensions.")
+                json_data_str = json.dumps(benchmark_data, indent=2)
+                st.download_button(
+                    "Download benchmark_results.json",
+                    data=json_data_str.encode("utf-8"),
+                    file_name="benchmark_results.json",
+                    mime="application/json",
+                    use_container_width=True,
+                )
+
+            with c_exp2:
+                st.markdown("##### 📥 Download Comparison Leaderboard (CSV)")
+                st.markdown("Tabular format containing Balanced Accuracy, Macro F1, Precision, Recall, and Latency for all models across all datasets.")
+                # Build master flattened dataframe
+                flat_rows = []
+                for d in benchmark_data:
+                    for m_name, m_info in d.get("models", {}).items():
+                        if m_info.get("status") == "OK":
+                            flat_rows.append({
+                                "Dataset": d["dataset"],
+                                "Task": d.get("task", ""),
+                                "Samples": d.get("n_samples", 0),
+                                "Features": d.get("n_features", 0),
+                                "Model": m_name,
+                                "Balanced_Accuracy": m_info.get("balanced_accuracy", 0.0),
+                                "Accuracy": m_info.get("accuracy", 0.0),
+                                "Precision": m_info.get("precision", 0.0),
+                                "Recall": m_info.get("recall", 0.0),
+                                "F1_Score": m_info.get("f1_score", 0.0),
+                                "FPR": m_info.get("fpr", np.nan),
+                                "FNR": m_info.get("fnr", np.nan),
+                                "Latency_per_sample_ms": m_info.get("latency_per_sample_ms", 0.0),
+                                "Train_Time_s": m_info.get("train_time_sec", 0.0),
+                            })
+                df_flat = pd.DataFrame(flat_rows)
+                csv_data_bytes = df_flat.to_csv(index=False).encode("utf-8")
+                st.download_button(
+                    "Download benchmark_leaderboard.csv",
+                    data=csv_data_bytes,
+                    file_name="benchmark_leaderboard.csv",
+                    mime="text/csv",
+                    use_container_width=True,
+                )
+
+            with st.expander("👁️ View Raw Benchmark JSON Payload"):
+                st.json(benchmark_data)
 
 

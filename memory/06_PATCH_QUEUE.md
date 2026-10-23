@@ -118,6 +118,36 @@ Quick way to give one: in Cursor/Antigravity type `/new-patch <your request>`.
 - Closed by: Kishan (Member 1) / Antigravity on 2026-10-23
 - Side effects / follow-ups: None.
 
+## P-005 | Cross-Dataset ML Benchmark & Comparative Dashboard Analytics | Status: DONE
+- Requested by: Kishan (Member 1) on 2026-10-23
+- Prompt (verbatim): "we added new datasets in the datasets folder in the directory Randetmlrun/datasets. Analyze that datasets with different ml models used in the project and take the standard parameters which we have used before and show the desired results in the dashboard with comparison using different ml models"
+- Interpretation / scope:
+  1. Inspect all newly added datasets in `datasets/`: `Ransomware.csv` (138K samples, 54 PE header features), `data_file.csv` (62.5K samples, 15 PE/Bitcoin features), `ransom.csv` (21.7K samples, 73 PE features, 27 families), `ransomset-multiclass-dataset.csv` (19.2K samples, 239 API call features, 7 classes), alongside baseline `MLRan` (4.88K samples, 483 behavioral RFE features).
+  2. Implement cross-dataset benchmark pipeline (`scripts/benchmark_cross_datasets.py` and `scripts/refine_benchmark_results.py`) training and evaluating standard project ML models:
+     - Logistic Regression (L2, C=1.0, solver="lbfgs", max_iter=1000)
+     - Random Forest (100 trees, max_depth=20, seed=42)
+     - Extra Trees (100 trees, max_depth=20, seed=42)
+     - Decision Tree (max_depth=15, seed=42)
+     - Linear SVM (LinearSVC, max_iter=2000, seed=42)
+     - MLP (64-Hidden, seed=42)
+     - Gradient Boosting (100 trees, lr=0.1, max_depth=5, seed=42)
+  3. Execute rigorous 80/20 stratified evaluations, computing Balanced Accuracy, Accuracy, Precision, Recall, Macro F1, FPR, FNR, Latency per sample, Training Time, and Confusion Matrices, saved to `datasets/benchmark_results.json`.
+  4. Integrate comprehensive "🌐 Cross-Dataset Benchmark & Model Comparison" section into Streamlit dashboard (`dashboard/app.py`):
+     - Executive KPI ribbon (>246,000 samples evaluated across 5 datasets).
+     - Sub-Tab 1: Metric-driven comparative heatmaps, grouped Plotly bar charts, and master multi-model leaderboard.
+     - Sub-Tab 2: Dataset deep-dives with multi-dimensional radar charts, Pareto latency-accuracy trade-off curves, and confusion matrix explorer.
+     - Sub-Tab 3: Architectural insights contrasting static PE headers, dynamic API counts, Bitcoin indicators, and behavioral RFE vectors.
+     - Sub-Tab 4: Full data export (JSON/CSV) and raw payload inspector.
+  5. Validate Streamlit compilation and runtime (HTTP 200).
+- Priority: blocker
+- Related tasks/decisions: T-P2-01, T-P8-03, T-P8-05, P-002, P-004
+- Files expected to change: `scripts/benchmark_cross_datasets.py`, `scripts/refine_benchmark_results.py`, `datasets/benchmark_results.json`, `dashboard/app.py`, `memory/*`
+- Implementation notes: Executed full benchmark across >246K samples; refined multiclass solvers and baseline labels; persisted complete `datasets/benchmark_results.json`; integrated new navigation section in `dashboard/app.py` with 4 sub-tabs, interactive heatmaps, grouped charts, radar plots, Pareto frontiers, and CSV/JSON export.
+- Verification: All 5 datasets evaluated across 7 standard models with 0 errors; `benchmark_results.json` 100% complete; `dashboard/app.py` py_compile exit code 0; Streamlit HTTP 200 OK.
+- Closed by: Kishan (Member 1) / Antigravity on 2026-10-23
+- Side effects / follow-ups: None.
+
+
 
 
 

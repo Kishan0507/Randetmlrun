@@ -1,0 +1,698 @@
+[
+  {
+    "dataset": "MLRan (Project Baseline)",
+    "description": "MLRan RFE 483 Behavioral Features (4,880 samples)",
+    "task": "Binary (Ransomware vs Goodware)",
+    "n_samples": 4880,
+    "n_features": 483,
+    "n_train": 3905,
+    "n_test": 975,
+    "class_names": [
+      "Goodware",
+      "Ransomware"
+    ],
+    "n_classes": 2,
+    "is_binary": true,
+    "models": {
+      "Logistic Regression (L2)": {
+        "accuracy": 0.9774358974358974,
+        "balanced_accuracy": 0.9776723592662871,
+        "precision": 0.970276008492569,
+        "recall": 0.9827956989247312,
+        "f1_score": 0.9764957264957265,
+        "latency_ms": 0.781,
+        "latency_per_sample_ms": 0.0008,
+        "confusion_matrix": {
+          "TN": 496,
+          "FP": 14,
+          "FN": 8,
+          "TP": 457
+        },
+        "fpr": 0.027450980392156862,
+        "fnr": 0.017204301075268817,
+        "train_time_sec": 0.076,
+        "status": "OK"
+      },
+      "Random Forest": {
+        "accuracy": 0.9702564102564103,
+        "balanced_accuracy": 0.9707147375079064,
+        "precision": 0.957983193277311,
+        "recall": 0.9806451612903225,
+        "f1_score": 0.9691817215727949,
+        "latency_ms": 30.488,
+        "latency_per_sample_ms": 0.0313,
+        "confusion_matrix": {
+          "TN": 490,
+          "FP": 20,
+          "FN": 9,
+          "TP": 456
+        },
+        "fpr": 0.0392156862745098,
+        "fnr": 0.01935483870967742,
+        "train_time_sec": 0.232,
+        "status": "OK"
+      },
+      "Extra Trees": {
+        "accuracy": 0.9712820512820513,
+        "balanced_accuracy": 0.9717900063251107,
+        "precision": 0.9580712788259959,
+        "recall": 0.9827956989247312,
+        "f1_score": 0.970276008492569,
+        "latency_ms": 38.765,
+        "latency_per_sample_ms": 0.0398,
+        "confusion_matrix": {
+          "TN": 490,
+          "FP": 20,
+          "FN": 8,
+          "TP": 457
+        },
+        "fpr": 0.0392156862745098,
+        "fnr": 0.017204301075268817,
+        "train_time_sec": 0.163,
+        "status": "OK"
+      },
+      "Decision Tree": {
+        "accuracy": 0.9425641025641026,
+        "balanced_accuracy": 0.9417773561037318,
+        "precision": 0.9534368070953437,
+        "recall": 0.9247311827956989,
+        "f1_score": 0.9388646288209607,
+        "latency_ms": 1.139,
+        "latency_per_sample_ms": 0.0012,
+        "confusion_matrix": {
+          "TN": 489,
+          "FP": 21,
+          "FN": 35,
+          "TP": 430
+        },
+        "fpr": 0.041176470588235294,
+        "fnr": 0.07526881720430108,
+        "train_time_sec": 0.106,
+        "status": "OK"
+      },
+      "Linear SVM": {
+        "accuracy": 0.9651282051282051,
+        "balanced_accuracy": 0.9649588867805187,
+        "precision": 0.9654427645788337,
+        "recall": 0.9612903225806452,
+        "f1_score": 0.9633620689655172,
+        "latency_ms": 0.869,
+        "latency_per_sample_ms": 0.0009,
+        "confusion_matrix": {
+          "TN": 494,
+          "FP": 16,
+          "FN": 18,
+          "TP": 447
+        },
+        "fpr": 0.03137254901960784,
+        "fnr": 0.03870967741935484,
+        "train_time_sec": 0.293,
+        "status": "OK"
+      },
+      "MLP (64-Hidden)": {
+        "accuracy": 0.9815384615384616,
+        "balanced_accuracy": 0.9816888045540797,
+        "precision": 0.976545842217484,
+        "recall": 0.9849462365591398,
+        "f1_score": 0.9807280513918629,
+        "latency_ms": 1.515,
+        "latency_per_sample_ms": 0.0016,
+        "confusion_matrix": {
+          "TN": 499,
+          "FP": 11,
+          "FN": 7,
+          "TP": 458
+        },
+        "fpr": 0.021568627450980392,
+        "fnr": 0.015053763440860216,
+        "train_time_sec": 2.741,
+        "status": "OK"
+      },
+      "Gradient Boosting": {
+        "accuracy": 0.9723076923076923,
+        "balanced_accuracy": 0.9729601518026565,
+        "precision": 0.95625,
+        "recall": 0.9870967741935484,
+        "f1_score": 0.9714285714285714,
+        "latency_ms": 4.781,
+        "latency_per_sample_ms": 0.0049,
+        "confusion_matrix": {
+          "TN": 489,
+          "FP": 21,
+          "FN": 6,
+          "TP": 459
+        },
+        "fpr": 0.041176470588235294,
+        "fnr": 0.012903225806451613,
+        "train_time_sec": 4.319,
+        "status": "OK"
+      }
+    }
+  },
+  {
+    "dataset": "Ransomware.csv",
+    "description": "PE Header Features (138K samples, 54 features)",
+    "task": "Binary (Ransomware vs Legitimate)",
+    "n_samples": 138047,
+    "n_features": 54,
+    "n_train": 110437,
+    "n_test": 27610,
+    "class_names": [
+      "Legitimate",
+      "Ransomware"
+    ],
+    "n_classes": 2,
+    "is_binary": true,
+    "models": {
+      "Logistic Regression (L2)": {
+        "accuracy": 0.9801883375588555,
+        "balanced_accuracy": 0.974774109184066,
+        "precision": 0.9835374009671777,
+        "recall": 0.9882657017317136,
+        "f1_score": 0.985895882216435,
+        "latency_ms": 10.695,
+        "latency_per_sample_ms": 0.0004,
+        "confusion_matrix": {
+          "TN": 7945,
+          "FP": 320,
+          "FN": 227,
+          "TP": 19118
+        },
+        "fpr": 0.03871748336358137,
+        "fnr": 0.011734298268286378,
+        "train_time_sec": 9.371,
+        "status": "OK"
+      },
+      "Random Forest": {
+        "accuracy": 0.9950380296993843,
+        "balanced_accuracy": 0.9942414592108118,
+        "precision": 0.9966901117087298,
+        "recall": 0.9962264150943396,
+        "f1_score": 0.9964582094568393,
+        "latency_ms": 129.738,
+        "latency_per_sample_ms": 0.0047,
+        "confusion_matrix": {
+          "TN": 8201,
+          "FP": 64,
+          "FN": 73,
+          "TP": 19272
+        },
+        "fpr": 0.007743496672716273,
+        "fnr": 0.0037735849056603774,
+        "train_time_sec": 8.896,
+        "status": "OK"
+      },
+      "Extra Trees": {
+        "accuracy": 0.9934444042013764,
+        "balanced_accuracy": 0.992584470507737,
+        "precision": 0.9959113963357831,
+        "recall": 0.9947273197208581,
+        "f1_score": 0.995319005870639,
+        "latency_ms": 78.626,
+        "latency_per_sample_ms": 0.0028,
+        "confusion_matrix": {
+          "TN": 8186,
+          "FP": 79,
+          "FN": 102,
+          "TP": 19243
+        },
+        "fpr": 0.00955837870538415,
+        "fnr": 0.005272680279141897,
+        "train_time_sec": 7.216,
+        "status": "OK"
+      },
+      "Decision Tree": {
+        "accuracy": 0.9925751539297356,
+        "balanced_accuracy": 0.9908207185194116,
+        "precision": 0.9942160710596984,
+        "recall": 0.9951925562160765,
+        "f1_score": 0.9947040739879615,
+        "latency_ms": 5.175,
+        "latency_per_sample_ms": 0.0002,
+        "confusion_matrix": {
+          "TN": 8153,
+          "FP": 112,
+          "FN": 93,
+          "TP": 19252
+        },
+        "fpr": 0.013551119177253478,
+        "fnr": 0.0048074437839234945,
+        "train_time_sec": 2.316,
+        "status": "OK"
+      },
+      "Linear SVM": {
+        "accuracy": 0.9794277435711699,
+        "balanced_accuracy": 0.9737808885275907,
+        "precision": 0.9828730134238544,
+        "recall": 0.9878521581804084,
+        "f1_score": 0.9853562957615758,
+        "latency_ms": 3.01,
+        "latency_per_sample_ms": 0.0001,
+        "confusion_matrix": {
+          "TN": 7932,
+          "FP": 333,
+          "FN": 235,
+          "TP": 19110
+        },
+        "fpr": 0.040290381125226864,
+        "fnr": 0.012147841819591625,
+        "train_time_sec": 98.691,
+        "status": "OK"
+      },
+      "MLP (64-Hidden)": {
+        "accuracy": 0.9921405287939152,
+        "balanced_accuracy": 0.9909263560055208,
+        "precision": 0.9948261589403974,
+        "recall": 0.9939519255621607,
+        "f1_score": 0.9943888501021384,
+        "latency_ms": 14.581,
+        "latency_per_sample_ms": 0.0005,
+        "confusion_matrix": {
+          "TN": 8165,
+          "FP": 100,
+          "FN": 117,
+          "TP": 19228
+        },
+        "fpr": 0.012099213551119177,
+        "fnr": 0.006048074437839235,
+        "train_time_sec": 55.11,
+        "status": "OK"
+      },
+      "Gradient Boosting": {
+        "accuracy": 0.9928286852589642,
+        "balanced_accuracy": 0.9913134901852987,
+        "precision": 0.9946778277269674,
+        "recall": 0.9950891703282502,
+        "f1_score": 0.9948834565093804,
+        "latency_ms": 38.358,
+        "latency_per_sample_ms": 0.0014,
+        "confusion_matrix": {
+          "TN": 8162,
+          "FP": 103,
+          "FN": 95,
+          "TP": 19250
+        },
+        "fpr": 0.012462189957652752,
+        "fnr": 0.004910829671749806,
+        "train_time_sec": 72.143,
+        "status": "OK"
+      }
+    }
+  },
+  {
+    "dataset": "data_file.csv",
+    "description": "PE Features & Bitcoin Indicators (62K samples, 15 features)",
+    "task": "Binary (Ransomware vs Benign)",
+    "n_samples": 62485,
+    "n_features": 15,
+    "n_train": 49988,
+    "n_test": 12497,
+    "class_names": [
+      "Benign",
+      "Ransomware"
+    ],
+    "n_classes": 2,
+    "is_binary": true,
+    "models": {
+      "Logistic Regression (L2)": {
+        "accuracy": 0.8679683123949747,
+        "balanced_accuracy": 0.8577198589967999,
+        "precision": 0.8472275579459598,
+        "recall": 0.9353880955747208,
+        "f1_score": 0.8891278054024997,
+        "latency_ms": 0.529,
+        "latency_per_sample_ms": 0.0,
+        "confusion_matrix": {
+          "TN": 4231,
+          "FP": 1193,
+          "FN": 457,
+          "TP": 6616
+        },
+        "fpr": 0.21994837758112096,
+        "fnr": 0.06461190442527923,
+        "train_time_sec": 0.174,
+        "status": "OK"
+      },
+      "Random Forest": {
+        "accuracy": 0.9964791549971993,
+        "balanced_accuracy": 0.9963308003304769,
+        "precision": 0.9963282022313232,
+        "recall": 0.9974551109854376,
+        "f1_score": 0.996891338137629,
+        "latency_ms": 48.195,
+        "latency_per_sample_ms": 0.0039,
+        "confusion_matrix": {
+          "TN": 5398,
+          "FP": 26,
+          "FN": 18,
+          "TP": 7055
+        },
+        "fpr": 0.004793510324483776,
+        "fnr": 0.0025448890145624205,
+        "train_time_sec": 0.501,
+        "status": "OK"
+      },
+      "Extra Trees": {
+        "accuracy": 0.9876770424901976,
+        "balanced_accuracy": 0.9866849875111927,
+        "precision": 0.984184744576627,
+        "recall": 0.9942033083557189,
+        "f1_score": 0.9891686594457729,
+        "latency_ms": 49.541,
+        "latency_per_sample_ms": 0.004,
+        "confusion_matrix": {
+          "TN": 5311,
+          "FP": 113,
+          "FN": 41,
+          "TP": 7032
+        },
+        "fpr": 0.020833333333333332,
+        "fnr": 0.005796691644281069,
+        "train_time_sec": 0.375,
+        "status": "OK"
+      },
+      "Decision Tree": {
+        "accuracy": 0.9947987517004081,
+        "balanced_accuracy": 0.9946313664452505,
+        "precision": 0.9949152542372881,
+        "recall": 0.9958999010320939,
+        "f1_score": 0.9954073341341059,
+        "latency_ms": 1.177,
+        "latency_per_sample_ms": 0.0001,
+        "confusion_matrix": {
+          "TN": 5388,
+          "FP": 36,
+          "FN": 29,
+          "TP": 7044
+        },
+        "fpr": 0.00663716814159292,
+        "fnr": 0.0041000989679061215,
+        "train_time_sec": 0.113,
+        "status": "OK"
+      },
+      "Linear SVM": {
+        "accuracy": 0.8694086580779387,
+        "balanced_accuracy": 0.8574878964502928,
+        "precision": 0.8414710681561441,
+        "recall": 0.9478297752014704,
+        "f1_score": 0.8914893617021277,
+        "latency_ms": 0.542,
+        "latency_per_sample_ms": 0.0,
+        "confusion_matrix": {
+          "TN": 4161,
+          "FP": 1263,
+          "FN": 369,
+          "TP": 6704
+        },
+        "fpr": 0.23285398230088494,
+        "fnr": 0.05217022479852962,
+        "train_time_sec": 0.19,
+        "status": "OK"
+      },
+      "MLP (64-Hidden)": {
+        "accuracy": 0.9867168120348884,
+        "balanced_accuracy": 0.9864169624651808,
+        "precision": 0.9878513914394689,
+        "recall": 0.9886893821575004,
+        "f1_score": 0.9882702091577162,
+        "latency_ms": 4.507,
+        "latency_per_sample_ms": 0.0004,
+        "confusion_matrix": {
+          "TN": 5338,
+          "FP": 86,
+          "FN": 80,
+          "TP": 6993
+        },
+        "fpr": 0.015855457227138645,
+        "fnr": 0.011310617842499647,
+        "train_time_sec": 16.28,
+        "status": "OK"
+      },
+      "Gradient Boosting": {
+        "accuracy": 0.9955989437464992,
+        "balanced_accuracy": 0.995295297001727,
+        "precision": 0.994643360586411,
+        "recall": 0.9975964937084688,
+        "f1_score": 0.9961177384061551,
+        "latency_ms": 11.307,
+        "latency_per_sample_ms": 0.0009,
+        "confusion_matrix": {
+          "TN": 5386,
+          "FP": 38,
+          "FN": 17,
+          "TP": 7056
+        },
+        "fpr": 0.007005899705014749,
+        "fnr": 0.0024035062915311748,
+        "train_time_sec": 6.161,
+        "status": "OK"
+      }
+    }
+  },
+  {
+    "dataset": "ransom.csv",
+    "description": "PE Header Features (21K samples, 73 features, 27 families)",
+    "task": "Multi-class (27 Malware Families)",
+    "n_samples": 21752,
+    "n_features": 73,
+    "n_train": 17401,
+    "n_test": 4351,
+    "class_names": [
+      "Agenttesla",
+      "Benign",
+      "Cerber",
+      "DarkSide",
+      "Dharma",
+      "Emotet",
+      "Formbook",
+      "Gandcrab",
+      "Gh0st",
+      "Glupteba",
+      "Guloader",
+      "LockBit",
+      "Maze",
+      "NanoCore",
+      "Phobos",
+      "Qbot",
+      "REvil",
+      "Raccoon",
+      "Ragnar",
+      "RedLine",
+      "Remcos",
+      "Ryuk",
+      "Shade",
+      "Snake",
+      "Ursnif",
+      "WannaCry",
+      "njRat"
+    ],
+    "n_classes": 27,
+    "is_binary": false,
+    "models": {
+      "Logistic Regression (L2)": {
+        "accuracy": 0.7628131464031257,
+        "balanced_accuracy": 0.5580207578611356,
+        "precision": 0.6347617947553977,
+        "recall": 0.5580207578611356,
+        "f1_score": 0.5771877625279548,
+        "latency_ms": 8.179,
+        "latency_per_sample_ms": 0.0019,
+        "fpr": null,
+        "fnr": null,
+        "train_time_sec": 2.077,
+        "status": "OK"
+      },
+      "Random Forest": {
+        "accuracy": 0.9634566766260629,
+        "balanced_accuracy": 0.9370569023535381,
+        "precision": 0.9381308854212939,
+        "recall": 0.9370569023535381,
+        "f1_score": 0.9372791044750608,
+        "latency_ms": 48.578,
+        "latency_per_sample_ms": 0.0112,
+        "fpr": null,
+        "fnr": null,
+        "train_time_sec": 0.377,
+        "status": "OK"
+      },
+      "Extra Trees": {
+        "accuracy": 0.6547920018386578,
+        "balanced_accuracy": 0.33015919401730126,
+        "precision": 0.8987413430936535,
+        "recall": 0.33015919401730126,
+        "f1_score": 0.41102705153429786,
+        "latency_ms": 47.698,
+        "latency_per_sample_ms": 0.011,
+        "fpr": null,
+        "fnr": null,
+        "train_time_sec": 0.334,
+        "status": "OK"
+      },
+      "Decision Tree": {
+        "accuracy": 0.9211675476901862,
+        "balanced_accuracy": 0.8652373622822055,
+        "precision": 0.8633955955698615,
+        "recall": 0.8652373622822055,
+        "f1_score": 0.8626292208853088,
+        "latency_ms": 1.321,
+        "latency_per_sample_ms": 0.0003,
+        "fpr": null,
+        "fnr": null,
+        "train_time_sec": 0.102,
+        "status": "OK"
+      },
+      "Linear SVM": {
+        "accuracy": 0.7228223396920248,
+        "balanced_accuracy": 0.47007071872121775,
+        "precision": 0.5860792199275874,
+        "recall": 0.47007071872121775,
+        "f1_score": 0.47448602608642715,
+        "latency_ms": 2.153,
+        "latency_per_sample_ms": 0.0005,
+        "fpr": null,
+        "fnr": null,
+        "train_time_sec": 175.31,
+        "status": "OK"
+      },
+      "MLP (64-Hidden)": {
+        "accuracy": 0.9147322454608136,
+        "balanced_accuracy": 0.8563458073418233,
+        "precision": 0.8543786346500236,
+        "recall": 0.8563458073418233,
+        "f1_score": 0.8546844724542254,
+        "latency_ms": 4.259,
+        "latency_per_sample_ms": 0.001,
+        "fpr": null,
+        "fnr": null,
+        "train_time_sec": 22.523,
+        "status": "OK"
+      },
+      "Gradient Boosting": {
+        "accuracy": 0.9609285221788094,
+        "balanced_accuracy": 0.9313540121213024,
+        "precision": 0.9362712287136445,
+        "recall": 0.9313540121213024,
+        "f1_score": 0.9332551939705651,
+        "latency_ms": 138.079,
+        "latency_per_sample_ms": 0.0317,
+        "fpr": null,
+        "fnr": null,
+        "train_time_sec": 137.736,
+        "status": "OK"
+      }
+    }
+  },
+  {
+    "dataset": "ransomset-multiclass-dataset.csv",
+    "description": "API Call Features (19K samples, 239 features, 7 classes)",
+    "task": "Multi-class (7 Ransomware Families + Normal)",
+    "n_samples": 19234,
+    "n_features": 239,
+    "n_train": 15387,
+    "n_test": 3847,
+    "class_names": [
+      "Conti",
+      "CryptoLocker",
+      "LockBit",
+      "Normal",
+      "Ryuk",
+      "Sodinikibi",
+      "WannaCry"
+    ],
+    "n_classes": 7,
+    "is_binary": false,
+    "models": {
+      "Logistic Regression (L2)": {
+        "accuracy": 0.9927216012477255,
+        "balanced_accuracy": 0.9652342970720496,
+        "precision": 0.9860818027702312,
+        "recall": 0.9652342970720496,
+        "f1_score": 0.9747714817135426,
+        "latency_ms": 1.421,
+        "latency_per_sample_ms": 0.0004,
+        "fpr": null,
+        "fnr": null,
+        "train_time_sec": 1.528,
+        "status": "OK"
+      },
+      "Random Forest": {
+        "accuracy": 0.9981804003119313,
+        "balanced_accuracy": 0.9941413021311308,
+        "precision": 0.9960356925163957,
+        "recall": 0.9941413021311308,
+        "f1_score": 0.9950328202975494,
+        "latency_ms": 51.285,
+        "latency_per_sample_ms": 0.0133,
+        "fpr": null,
+        "fnr": null,
+        "train_time_sec": 0.461,
+        "status": "OK"
+      },
+      "Extra Trees": {
+        "accuracy": 0.9979204574993501,
+        "balanced_accuracy": 0.9987502549199551,
+        "precision": 0.9973359973359973,
+        "recall": 0.9987502549199551,
+        "f1_score": 0.9980289670077267,
+        "latency_ms": 52.85,
+        "latency_per_sample_ms": 0.0137,
+        "fpr": null,
+        "fnr": null,
+        "train_time_sec": 0.592,
+        "status": "OK"
+      },
+      "Decision Tree": {
+        "accuracy": 0.9984403431245126,
+        "balanced_accuracy": 0.9985638787627337,
+        "precision": 0.9963623805686659,
+        "recall": 0.9985638787627337,
+        "f1_score": 0.9974517382488245,
+        "latency_ms": 1.982,
+        "latency_per_sample_ms": 0.0005,
+        "fpr": null,
+        "fnr": null,
+        "train_time_sec": 0.08,
+        "status": "OK"
+      },
+      "Linear SVM": {
+        "accuracy": 0.989862230309332,
+        "balanced_accuracy": 0.9430695721163508,
+        "precision": 0.9848988678592113,
+        "recall": 0.9430695721163508,
+        "f1_score": 0.9624088908669692,
+        "latency_ms": 3.554,
+        "latency_per_sample_ms": 0.0009,
+        "fpr": null,
+        "fnr": null,
+        "train_time_sec": 139.488,
+        "status": "OK"
+      },
+      "MLP (64-Hidden)": {
+        "accuracy": 0.9974005718741876,
+        "balanced_accuracy": 0.9940115654337746,
+        "precision": 0.9936353984180071,
+        "recall": 0.9940115654337746,
+        "f1_score": 0.9937436739030802,
+        "latency_ms": 3.809,
+        "latency_per_sample_ms": 0.001,
+        "fpr": null,
+        "fnr": null,
+        "train_time_sec": 10.203,
+        "status": "OK"
+      },
+      "Gradient Boosting": {
+        "accuracy": 0.9976605146867689,
+        "balanced_accuracy": 0.9914210216198764,
+        "precision": 0.995372825868281,
+        "recall": 0.9914210216198764,
+        "f1_score": 0.9932875191383607,
+        "latency_ms": 40.265,
+        "latency_per_sample_ms": 0.0105,
+        "fpr": null,
+        "fnr": null,
+        "train_time_sec": 63.849,
+        "status": "OK"
+      }
+    }
+  }
+]

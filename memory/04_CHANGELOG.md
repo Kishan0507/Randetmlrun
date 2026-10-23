@@ -12,6 +12,23 @@
 - Follow-ups: <what the next person should do>
 ```
 
+## C-017 | 2026-10-23 | P-005
+- Contributor (human): Kishan (Member 1, Project Lead)
+- Agent / IDE: Antigravity (Gemini 3.8 Flash)
+- What changed:
+  - Ingested and profiled all datasets in `datasets/`: `Ransomware.csv` (138,047 samples, 54 PE features), `data_file.csv` (62,485 samples, 15 PE/Bitcoin features), `ransom.csv` (21,752 samples, 73 PE features, 27 families), `ransomset-multiclass-dataset.csv` (19,234 samples, 239 API call features, 7 classes), and `MLRan Baseline` (4,880 samples, 483 behavioral features).
+  - Built cross-dataset ML benchmark pipeline (`scripts/benchmark_cross_datasets.py` and `scripts/refine_benchmark_results.py`) evaluating 7 standard ML models: Logistic Regression (L2, lbfgs), Random Forest, Extra Trees, Decision Tree, Linear SVM, MLP (64-Hidden), and Gradient Boosting using 80/20 stratified splits (seed=42).
+  - Evaluated >246,000 samples across Balanced Accuracy, Precision, Recall, Macro F1, FPR, FNR, Latency per sample, Training Time, and Confusion Matrices; saved complete benchmark results to `datasets/benchmark_results.json`.
+  - Added dedicated navigation section in `dashboard/app.py`: `"🌐 Cross-Dataset Benchmark & Model Comparison"` with 4 interactive sub-tabs:
+    1. Multi-Model Comparison & Heatmap matrix across metrics (BalAcc, F1, Recall, Precision, Latency, Train Time) and grouped Plotly bar charts.
+    2. Dataset Deep-Dive with multi-dimensional radar chart, Pareto latency vs accuracy curve, full metrics table, and confusion matrix explorer.
+    3. Feature Paradigms & Architectural Insights contrasting static PE headers, dynamic API counts, Bitcoin indicators, and behavioral RFE vectors.
+    4. Benchmark Artifacts & Data Export with download buttons for JSON and CSV.
+- Why: User request P-005 from Kishan (Member 1) to analyze newly added datasets with different ML models using standard project parameters and show the comparison results in the dashboard.
+- Verification: Benchmark executed with 100% complete metrics across all 5 datasets and 7 models (0 errors); Python 3.12 syntax check on `dashboard/app.py` passed with 0 errors; Streamlit server responding HTTP 200 on port 8501.
+- Plan impact: P-005 completed.
+- Follow-ups: Ready for review and presentation.
+
 ## C-016 | 2026-10-23 | P-004
 - Contributor (human): Kishan (Member 1, Project Lead)
 - Agent / IDE: Antigravity (Gemini 3.8 Flash)

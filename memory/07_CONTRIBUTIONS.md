@@ -29,6 +29,7 @@ Every contribution — code, data, analysis, writing, review, ideas, testing —
 | 2026-10-23 | Karthikey Kadati & Kalyani | Antigravity | P-002 | Model variation analytics frontend (standalone HTML + Streamlit Tab 5), parameter criteria analysis, and dataset organization catalog | `dashboard/analytics.html`, `dashboard/app.py`, `datasets/README.md`, `datasets/dataset_manifest.json`, `scripts/organize_datasets.py`, `memory/*` |
 | 2026-10-23 | Member 1 | Antigravity | P-003 | Real-time dynamic telemetry stream playback, multi-model radar comparator, dynamic ROC/PR tracking, feature keyword filters, and HTML live attack simulation engine | `dashboard/app.py`, `dashboard/analytics.html`, `memory/*` |
 | 2026-10-23 | Kishan (Member 1) | Antigravity | P-004 | Frontend dataset ingestion, intelligent parsing, batch evaluator with confusion matrix & CSV export, Windows RanSMAP crash fix, client-side JS evaluation | `dashboard/app.py`, `dashboard/analytics.html`, `dashboard/lr_weights.json`, `datasets/*`, `memory/*` |
+| 2026-10-23 | Kishan (Member 1) | Antigravity | P-005 | Cross-dataset ML benchmark (>246K samples across 5 datasets x 7 models), refined solvers/baseline, and new interactive dashboard comparison section | `scripts/benchmark_cross_datasets.py`, `scripts/refine_benchmark_results.py`, `datasets/benchmark_results.json`, `dashboard/app.py`, `memory/*` |
 
 
 
