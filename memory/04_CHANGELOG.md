@@ -24,6 +24,7 @@
     2. Dataset Deep-Dive with multi-dimensional radar chart, Pareto latency vs accuracy curve, full metrics table, and confusion matrix explorer.
     3. Feature Paradigms & Architectural Insights contrasting static PE headers, dynamic API counts, Bitcoin indicators, and behavioral RFE vectors.
     4. Benchmark Artifacts & Data Export with download buttons for JSON and CSV.
+  - Excluded and untracked raw dataset files (`Ransomware.csv`, `data_file.csv`, `ransom.csv`, `ransomset-multiclass-dataset.csv`, `malware_API_dataset*`) from git tracking via `.gitignore` per user request, preserving all files locally on disk.
 - Why: User request P-005 from Kishan (Member 1) to analyze newly added datasets with different ML models using standard project parameters and show the comparison results in the dashboard.
 - Verification: Benchmark executed with 100% complete metrics across all 5 datasets and 7 models (0 errors); Python 3.12 syntax check on `dashboard/app.py` passed with 0 errors; Streamlit server responding HTTP 200 on port 8501.
 - Plan impact: P-005 completed.
